@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "db:init": "node scripts/db-init.mjs"
+    "db:init": "node scripts/db-init.mjs",
+    "user:create": "node scripts/create-user.mjs"
   },
   "keywords": [],
   "author": "",

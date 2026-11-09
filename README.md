@@ -25,6 +25,14 @@ docker compose up --build
 
 브라우저는 DB에 직접 붙지 않는다. 모든 요청은 `/api/db`·`/api/rpc`를 거치고, 서버가 로그인 세션을 확인한 뒤 **내 가게의 행만** 읽고 쓰게 조건을 붙인다(Postgres의 RLS를 서버 코드로 옮긴 것). 표·열 이름은 `src/lib/db/schema.ts`의 목록에 있는 것만 SQL에 들어가고, 값은 항상 `?`로 넘긴다.
 
+## 계정 만들기·비밀번호 재설정
+가입 화면 대신 터미널에서 계정을 만들 수 있고, 이미 있는 이메일이면 비밀번호만 바꾼다(재설정 기능이 없어서 이걸 쓴다).
+```
+docker compose exec app node scripts/create-user.mjs 이메일 비밀번호   # Docker
+npm run user:create -- 이메일 비밀번호                                  # 직접 설치
+```
+이 계정도 일반 계정이라 자기 가게 데이터만 본다(관리자 권한 기능은 없다).
+
 ## 명령
 - `npm run dev` / `build` / `start`
 - `npm run typecheck`
