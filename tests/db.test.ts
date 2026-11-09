@@ -31,7 +31,7 @@ beforeAll(async () => {
   const [q, r, a, p] = await Promise.all([import('../src/lib/db/query'), import('../src/lib/db/rpc'), import('../src/lib/db/auth'), import('../src/lib/db/pool')]);
   m = { run: q.run, saveInvoice: r.saveInvoice, saveSettlement: r.saveSettlement, signUp: a.signUp, pool: p.pool };
   await m.pool().query('SET FOREIGN_KEY_CHECKS = 0');
-  for (const t of ['invoice_items', 'invoices', 'settlement_purchases', 'settlements', 'menu_rows', 'menus', 'prep_rows', 'preps', 'ingredients', 'checklist_checks', 'stores', 'sessions', 'users'])
+  for (const t of ['reviews', 'invoice_items', 'invoices', 'settlement_purchases', 'settlements', 'menu_rows', 'menus', 'prep_rows', 'preps', 'ingredients', 'checklist_checks', 'stores', 'sessions', 'users'])
     await m.pool().query(`DELETE FROM ${t}`);
   await m.pool().query('SET FOREIGN_KEY_CHECKS = 1');
   const mk = async (email: string): Promise<Ctx> => {
@@ -239,5 +239,38 @@ d('체크리스트·삭제', () => {
     const again = await ok(m.run({ userId: A.userId, storeId: null }, { table: 'stores', op: 'insert', values: {}, returning: 'id' }));
     expect(again[0].id).toBeTruthy();
     expect(await ok(m.run(B, { table: 'ingredients', op: 'select' }))).not.toHaveLength(0); // B는 그대로
+  });
+});
+
+d('리뷰·가게 정보', () => {
+  // 앞 시험에서 A의 가게를 지웠을 수 있어서, 새 사장님 둘로 확인한다.
+  let A: Ctx, B: Ctx;
+  beforeAll(async () => {
+    const mk = async (email: string): Promise<Ctx> => {
+      const u = await m.signUp(email, 'password123');
+      if (u === 'exists') throw new Error('exists');
+      const [rows] = await m.pool().query<any[]>('SELECT id FROM stores WHERE owner_id = ?', [u.id]); // eslint-disable-line @typescript-eslint/no-explicit-any
+      return { userId: u.id, storeId: rows[0].id };
+    };
+    A = await mk('rv-a@example.com'); B = await mk('rv-b@example.com');
+  });
+  it('가게 정보(주소·전화·플레이스 주소)를 저장하고 남의 가게는 바꿀 수 없다', async () => {
+    await ok(m.run(A, { table: 'stores', op: 'update', values: { name: '행복분식', address: '서울 마포구', phone: '02-000-0000', biz_no: '220-81-62517', place_url: 'https://naver.me/abc', place_id: '' }, filters: [{ col: 'id', op: 'eq', val: A.storeId }] }));
+    const a = await ok(m.run(A, { table: 'stores', op: 'select', columns: 'name,address,place_url' }));
+    expect(a).toEqual([{ name: '행복분식', address: '서울 마포구', place_url: 'https://naver.me/abc' }]);
+    await ok(m.run(A, { table: 'stores', op: 'update', values: { name: '탈취' }, filters: [{ col: 'id', op: 'eq', val: B.storeId }] }));
+    const b = await ok(m.run(B, { table: 'stores', op: 'select', columns: 'name' }));
+    expect(b[0].name).not.toBe('탈취');
+  });
+  it('리뷰는 내 가게 것만 보이고, 별점·출처가 이상하면 거절한다', async () => {
+    const id = (await ok(m.run(A, { table: 'reviews', op: 'insert', values: { source: 'naver', rating: 2, author: '손님', body: '별로예요', reviewed_on: '2026-11-01' }, returning: 'id' })))[0].id;
+    expect(await ok(m.run(B, { table: 'reviews', op: 'select' }))).toEqual([]);
+    expect(await fails(m.run(A, { table: 'reviews', op: 'insert', values: { source: 'naver', rating: 6, reviewed_on: '2026-11-01' } }))).toBe(true);
+    expect(await fails(m.run(A, { table: 'reviews', op: 'insert', values: { source: 'evil', rating: 3, reviewed_on: '2026-11-01' } }))).toBe(true);
+    expect(await fails(m.run(A, { table: 'reviews', op: 'insert', values: { source: 'naver', rating: 3, reviewed_on: '내일' } }))).toBe(true);
+    await ok(m.run(A, { table: 'reviews', op: 'update', values: { reply: '죄송합니다', replied: true }, filters: [{ col: 'id', op: 'eq', val: id }] }));
+    await ok(m.run(B, { table: 'reviews', op: 'delete', filters: [{ col: 'id', op: 'eq', val: id }] }));
+    const left = await ok(m.run(A, { table: 'reviews', op: 'select', columns: 'replied,reply' }));
+    expect(left).toEqual([{ replied: true, reply: '죄송합니다' }]);
   });
 });

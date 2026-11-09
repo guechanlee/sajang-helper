@@ -34,6 +34,11 @@ create table if not exists stores (
   is_rent boolean null,
   income_tier varchar(10) null check (income_tier in ('low','mid','high','unk')),
   profile_done boolean not null default false,
+  address varchar(120) not null default '',
+  phone varchar(30) not null default '',
+  biz_no varchar(12) not null default '',
+  place_url varchar(300) not null default '',
+  place_id varchar(20) not null default '',
   created_at datetime(3) not null default current_timestamp(3),
   -- v1은 사장님 1명당 가게 1개. 여러 가게를 지원할 때 이 유니크 키만 제거하면 된다.
   unique key stores_one_per_owner (owner_id),
@@ -175,5 +180,21 @@ create table if not exists checklist_checks (
   idx smallint not null check (idx between 0 and 19),
   checked boolean not null default true,
   primary key (store_id, ym, idx),
+  foreign key (store_id) references stores(id) on delete cascade
+) engine=InnoDB default charset=utf8mb4;
+
+-- 리뷰는 사장님이 직접 기록한다(네이버 등은 외부 프로그램이 리뷰를 가져올 공식 방법이 없다).
+create table if not exists reviews (
+  id char(36) primary key,
+  store_id char(36) not null,
+  source varchar(10) not null default 'naver' check (source in ('naver','kakao','google','baemin','coupang','etc')),
+  author varchar(40) not null default '',
+  rating tinyint not null check (rating between 1 and 5),
+  body varchar(1000) not null default '',
+  reviewed_on date not null,
+  reply varchar(1000) not null default '',
+  replied boolean not null default false,
+  created_at datetime(3) not null default current_timestamp(3),
+  key reviews_store_date (store_id, reviewed_on),
   foreign key (store_id) references stores(id) on delete cascade
 ) engine=InnoDB default charset=utf8mb4;

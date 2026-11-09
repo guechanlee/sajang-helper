@@ -4,6 +4,8 @@ import { buildAlerts, daysUntil, nextOccurrence, settlementYm } from './dates';
 import { invoiceTotals, isExtremePrice, menuImpacts, orderText, priceChanges, taxedFor } from './invoice';
 import { SAMPLE_INGREDIENTS, SAMPLE_MENUS, SAMPLE_PREPS } from './sample';
 import { matchSubsidies, totalMax } from './subsidy';
+import { fmtBizNo, parsePlaceUrl, placePage, validBizNo } from './place';
+import { draftReplies, summarize } from './reviews';
 import type { Ingredient, MenuRow, Prep, PrepRow } from './types';
 
 // 예시 데이터로 원가 장부를 만든다.
@@ -194,5 +196,52 @@ describe('날짜·알림', () => {
     expect(a.find((x) => x.key === 'demo')).toBeDefined();
     expect(a.every((x) => x.dday === null || x.dday >= 0)).toBe(true);
     expect(buildAlerts(null, now, 0).find((x) => x.key === 'yellow')).toBeDefined();
+  });
+});
+
+describe('스마트플레이스 주소', () => {
+  it('지도·모바일 주소에서 플레이스 번호를 뽑는다', () => {
+    expect(parsePlaceUrl('https://map.naver.com/p/entry/place/1234567890?c=15.00')).toEqual({ url: 'https://map.naver.com/p/entry/place/1234567890', placeId: '1234567890' });
+    expect(parsePlaceUrl('https://m.place.naver.com/restaurant/1234567890/home')?.placeId).toBe('1234567890');
+    expect(parsePlaceUrl('map.naver.com/p/entry/place/987654321')?.placeId).toBe('987654321');
+  });
+  it('단축 주소는 번호 없이 주소만 저장한다', () => {
+    expect(parsePlaceUrl('https://naver.me/abcDEF1')).toEqual({ url: 'https://naver.me/abcDEF1', placeId: '' });
+  });
+  it('네이버가 아닌 주소와 이상한 값은 거절한다', () => {
+    expect(parsePlaceUrl('https://evil.example.com/naver.com/place/1234567')).toBeNull();
+    expect(parsePlaceUrl('https://naver.com.evil.io/p/entry/place/1234567')).toBeNull();
+    expect(parsePlaceUrl('javascript:alert(1)')).toBeNull();
+    expect(parsePlaceUrl('')).toBeNull();
+  });
+  it('바로가기 주소는 번호가 있으면 지도 주소를 만든다', () => {
+    expect(placePage({ place_url: 'https://naver.me/x', place_id: '' })).toBe('https://naver.me/x');
+    expect(placePage({ place_url: '', place_id: '123456' })).toBe('https://map.naver.com/p/entry/place/123456');
+  });
+});
+
+describe('사업자등록번호', () => {
+  it('검증 숫자가 맞는 번호만 통과한다', () => {
+    expect(validBizNo('220-81-62517')).toBe(true); // 공개된 대기업 번호 형식 예시(검증 숫자 확인용)
+    expect(validBizNo('220-81-62518')).toBe(false);
+    expect(validBizNo('123')).toBe(false);
+  });
+  it('입력하는 대로 하이픈을 붙인다', () => {
+    expect(fmtBizNo('2208162517')).toBe('220-81-62517');
+    expect(fmtBizNo('22081')).toBe('220-81');
+  });
+});
+
+describe('리뷰', () => {
+  it('요약: 평균·분포·미답변', () => {
+    const s = summarize([{ rating: 5, replied: true }, { rating: 3, replied: false }, { rating: 1, replied: false }]);
+    expect(s.count).toBe(3); expect(s.avg).toBeCloseTo(3, 5); expect(s.unreplied).toBe(2);
+    expect(s.dist.find((d) => d.star === 5)!.n).toBe(1);
+    expect(summarize([]).avg).toBe(0);
+  });
+  it('별점에 따라 다른 톤의 답글 초안을 만든다', () => {
+    expect(draftReplies('한식당', 5, '민수')[0]!.text).toContain('민수님');
+    expect(draftReplies('한식당', 3, '')[0]!.text).toContain('고객님');
+    expect(draftReplies('한식당', 1, '')[0]!.text).toContain('죄송');
   });
 });

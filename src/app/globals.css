@@ -122,7 +122,7 @@ tr:last-child td{border-bottom:0}
 .sel{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px 10px}
 .up{color:var(--good);font-weight:700;font-size:12px}.dn{color:var(--bad);font-weight:700;font-size:12px}
 .ord{margin:0;white-space:pre-wrap;font-family:var(--font);font-size:14px;user-select:all}
-.tab{font-size:11px;padding:8px 2px}
+.tab{font-size:10.5px;padding:8px 0;letter-spacing:-.02em}
 .big-in input{font-size:18px;font-weight:700}
 details summary{cursor:pointer;font-weight:700}
 .lst{display:flex;flex-direction:column;gap:8px}
@@ -157,3 +157,18 @@ textarea{font:inherit;color:inherit}
 .amount.unk{font-size:15px;font-weight:700;color:var(--muted);letter-spacing:0}
 input[type=date]{min-width:0}
 .hint.lead{display:block}
+
+.linkrow{display:flex;gap:10px}.linkrow .btn{flex:1;padding:12px 8px;font-size:14px}
+.tab svg[data-dots] path{stroke-width:3}
+.ta{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;resize:vertical;line-height:1.5}
+.ta:focus{outline:0;border-color:var(--accent)}
+.starpick{display:flex;gap:6px}
+.starpick button{background:transparent;border:0;font-size:32px;line-height:1;color:var(--line);padding:4px 6px;min-height:44px}
+.starpick button.on{color:#F5A623}
+.stars{color:#F5A623;letter-spacing:2px;font-size:16px}
+.rbody{margin-top:4px;white-space:pre-wrap;overflow-wrap:anywhere}
+.reply{background:var(--bg);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.reply p{white-space:pre-wrap;font-size:14px;overflow-wrap:anywhere}
+.dist{display:flex;flex-direction:column;gap:6px}
+.drow{display:grid;grid-template-columns:32px 1fr 28px;gap:8px;align-items:center}
+.drow span:last-child{text-align:right}

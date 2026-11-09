@@ -18,7 +18,7 @@ const child = (cols: Record<string, ColType>, hasId = true, locked: string[] = [
 export const TABLES: Record<string, Table> = {
   stores: {
     cols: { id: S, owner_id: S, name: S, biz_type: S, status: S, opened_before_2025: B, annual_sales_man: N,
-      sales_dropped: B, is_rent: B, income_tier: S, profile_done: B, created_at: T },
+      sales_dropped: B, is_rent: B, income_tier: S, profile_done: B, address: S, phone: S, biz_no: S, place_url: S, place_id: S, created_at: T },
     hasId: true, scope: 'owner_id', locked: ['id', 'owner_id', 'created_at'],
   },
   ingredients: child({ category: S, vendor: S, name: S, spec_g: N, price: N, loss_pct: N, stock: N, order_qty: N, created_at: T }, true, ['created_at']),
@@ -31,5 +31,6 @@ export const TABLES: Record<string, Table> = {
   settlement_purchases: child({ settlement_id: S, vendor: S, amount_won: N }),
   invoices: child({ vendor: S, issued_on: D, created_at: T }, true, ['created_at']),
   invoice_items: child({ invoice_id: S, ingredient_id: S, name: S, unit_price_won: N, qty: N, taxed: B }),
+  reviews: child({ source: S, author: S, rating: N, body: S, reviewed_on: D, reply: S, replied: B, created_at: T }, true, ['created_at']),
   checklist_checks: child({ ym: S, idx: N, checked: B }, false),
 };

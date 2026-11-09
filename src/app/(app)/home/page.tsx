@@ -23,6 +23,7 @@ export default function HomePage() {
   const { sb, store } = useStore();
   const [d, setD] = useState<CostData | null>(null);
   const [month, setMonth] = useState<Month>(null);
+  const [unreplied, setUnreplied] = useState(0);
   const [ready, setReady] = useState(false);
   const [err, setErr] = useState('');
   const now = new Date();
@@ -41,6 +42,8 @@ export default function HomePage() {
           const r = settle(toS(row), (ps.data ?? []).map((x) => ({ vendor: String(x.vendor), amount_won: Number(x.amount_won) })));
           if (r.sales > 0) m = { ym, sales: r.sales, profit: r.profit, costShare: r.share(r.cost) };
         }
+        const rv = await sb.from('reviews').select('id').eq('replied', false);
+        setUnreplied(rv.error ? 0 : (rv.data ?? []).length);
         setD(cost); setMonth(m); setReady(true);
       } catch { setErr('불러오지 못했어요. 새로고침해 주세요.'); }
     })();
@@ -59,6 +62,7 @@ export default function HomePage() {
 
   // 아직 안 한 것만 카드로 보여준다. 다 했으면 아무것도 나오지 않는다.
   const todo: { title: string; sub: string; href: string }[] = [];
+  if (store.name === '내 가게') todo.unshift({ title: '내 가게 등록하기', sub: '가게 이름과 스마트플레이스 주소를 저장해 두면 바로 열 수 있어요', href: '/alerts' });
   if (!store.profile_done) todo.push({ title: '받을 수 있는 지원금 찾기', sub: '질문 7개에 답하면 돼요 (3분)', href: '/subsidy' });
   if (withRecipe.length === 0) todo.push({ title: '메뉴 원가 계산해 보기', sub: '재료 가격과 레시피를 넣거나, 예시 데이터로 먼저 둘러봐요', href: '/cost' });
   if (month === null) todo.push({ title: `${monthOf(ym)}월 정산 적기`, sub: '매출과 비용을 넣으면 남은 돈이 나와요', href: '/month' });
@@ -95,6 +99,10 @@ export default function HomePage() {
         </div>
       )}
 
+      {unreplied > 0 && (
+        <Link href="/reviews" className="card list-link"><div className="row sp"><div><h3>답글 안 단 리뷰 {unreplied}개</h3><span className="hint">답글 초안을 만들어 드려요</span></div><span className="hint" aria-hidden="true">›</span></div></Link>
+      )}
+
       {toOrder > 0 && (
         <Link href="/stock" className="card list-link"><div className="row sp"><div><h3>발주할 품목 {toOrder}개</h3><span className="hint">재고 탭에서 발주서를 복사하거나 문자로 보내요</span></div><span className="hint" aria-hidden="true">›</span></div></Link>
       )}
@@ -104,7 +112,7 @@ export default function HomePage() {
       )}
 
       <div className="card">
-        <div className="row sp"><h3>다가오는 날짜</h3><Link href="/alerts" className="lnk">알림 탭</Link></div>
+        <div className="row sp"><h3>다가오는 날짜</h3><Link href="/alerts" className="lnk">더보기</Link></div>
         {dates.map((a) => (
           <div className="row" key={a.key}><div className="dday">D-{a.dday}</div><div style={{ flex: 1 }}><b>{a.title}</b><div className="hint">{a.sub}</div></div></div>
         ))}

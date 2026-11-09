@@ -1,10 +1,11 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { useStore } from '@/components/StoreProvider';
+import { StoreForm } from '@/components/StoreForm';
 import { buildAlerts } from '@/lib/dates';
 import { matchSubsidies } from '@/lib/subsidy';
 
-const TABLES = ['stores', 'ingredients', 'preps', 'prep_rows', 'menus', 'menu_rows', 'settlements', 'settlement_purchases', 'invoices', 'invoice_items', 'checklist_checks'];
+const TABLES = ['reviews', 'stores', 'ingredients', 'preps', 'prep_rows', 'menus', 'menu_rows', 'settlements', 'settlement_purchases', 'invoices', 'invoice_items', 'checklist_checks'];
 
 export default function AlertsPage() {
   const { sb, store, reloadStore } = useStore();
@@ -42,7 +43,9 @@ export default function AlertsPage() {
 
   return (
     <>
-      <div className="hero"><span className="lbl">알림</span><h1>놓치면 아까운 날짜</h1><p>세금 기한은 실제 날짜예요. 지원금 마감일은 공고마다 달라서 공식 공고에서 확인해 주세요. 자동 알림 발송은 아직 없어요.</p></div>
+      <div className="hero"><span className="lbl">더보기</span><h1>가게 정보와<br />놓치면 아까운 날짜</h1><p>세금 기한은 실제 날짜예요. 지원금 마감일은 공고마다 달라서 공식 공고에서 확인해 주세요. 자동 알림 발송은 아직 없어요.</p></div>
+      <StoreForm />
+      <h2 style={{ fontSize: 18, margin: '8px 0 -4px' }}>놓치면 아까운 날짜</h2>
       {alerts.map((a) => (
         <div className="card" key={a.key}><div className="row"><div className="dday">{a.dday === null ? a.tag : `D-${a.dday}`}</div><div style={{ flex: 1 }}><h3>{a.title}</h3><p className="hint">{a.sub}</p></div></div></div>
       ))}

@@ -17,6 +17,12 @@ export type StoreProfile = {
   is_rent: boolean | null;
   income_tier: 'low' | 'mid' | 'high' | 'unk' | null;
   profile_done: boolean;
+  address: string; phone: string; biz_no: string; place_url: string; place_id: string;
+};
+
+export type Review = {
+  id: string; store_id: string; source: 'naver' | 'kakao' | 'google' | 'baemin' | 'coupang' | 'etc';
+  author: string; rating: number; body: string; reviewed_on: string; reply: string; replied: boolean;
 };
 
 export type Settlement = {

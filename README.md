@@ -42,6 +42,13 @@ docker compose exec db mysqldump -uroot -proot-local-only sajang > backup.sql
 docker compose exec -T db mysql -uroot -proot-local-only sajang < backup.sql   # 복원
 ```
 
+## 가게 등록·스마트플레이스·리뷰
+
+- **더보기 탭**에서 가게 이름·주소·전화·사업자등록번호를 저장하고, 네이버 플레이스 주소를 넣어 두면 스마트플레이스와 내 플레이스 페이지를 바로 열어요.
+- 네이버는 외부 앱이 스마트플레이스에 로그인하거나 리뷰를 자동으로 가져올 공개 API를 제공하지 않아요(제휴 업체용 연동만 있어요). 그래서 이 앱은 **로그인을 대신하지 않고**, 리뷰도 자동 수집하지 않아요. 스크래핑은 이용약관 위반이 될 수 있어 하지 않았어요.
+- **리뷰 탭**: 리뷰를 직접 복사해 기록하면 평균 별점, 미답변 목록, 별점별 답글 초안을 보여줘요. 답글은 스마트플레이스에서 직접 등록해요.
+- 이미 쓰던 DB는 `npm run db:init`(Docker는 재시작)이 새 열과 `reviews` 표를 자동으로 더해요.
+
 ## 명령
 - `npm run dev` / `build` / `start`
 - `npm run typecheck`
