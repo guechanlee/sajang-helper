@@ -85,23 +85,61 @@ describe('월 정산', () => {
 });
 
 describe('지원금 매칭', () => {
-  it('운영 중 + 연매출 8,500만 + 매출 감소', () => {
-    const m = matchSubsidies({ status: 'run', opened_before_2025: true, annual_sales_man: 8500, sales_dropped: true, is_rent: true, income_tier: 'mid' });
-    expect(m.map((x) => x.id).sort()).toEqual(['improve', 'voucher', 'yellow']);
+  const ids = (m: { id: string }[]) => m.map((x) => x.id);
+  const base = { opened_before_2025: true, annual_sales_man: 8500, sales_dropped: false, is_rent: false, income_tier: 'mid' as const };
+
+  it('운영 중 + 연매출 8,500만 + 매출 감소 + 월세', () => {
+    const m = matchSubsidies({ ...base, status: 'run', sales_dropped: true, is_rent: true });
+    expect(ids(m)).toEqual(expect.arrayContaining(['voucher', 'improve', 'yellow', 'loan-general', 'loan-refi', 'smartshop', 'vat-simple', 'lease', 'newstart']));
+    expect(ids(m)).not.toContain('demo');
+    expect(ids(m)).not.toContain('loan-growth');
     expect(m.find((x) => x.id === 'yellow')!.max).toBe(1_056_000);
-    expect(totalMax(m)).toBe(250_000 + 20_000_000 + 1_056_000);
   });
-  it('연매출 1.2억이면 바우처 없음', () => {
-    const m = matchSubsidies({ status: 'run', opened_before_2025: false, annual_sales_man: 12000, sales_dropped: false, is_rent: false, income_tier: 'high' });
-    expect(m.map((x) => x.id)).toEqual(['yellow']);
+  it('합계에는 받는 돈·세금만 들어가고 대출은 빠진다', () => {
+    const m = matchSubsidies({ ...base, status: 'run', sales_dropped: true });
+    // 바우처 25만 + 경영개선 2천만 + 스마트상점 500만 + 노란우산 105.6만
+    expect(totalMax(m)).toBe(250_000 + 20_000_000 + 5_000_000 + 1_056_000);
   });
-  it('폐업 + 월세 → 철거비·재창업, 바우처·노란우산 없음', () => {
-    const m = matchSubsidies({ status: 'think', opened_before_2025: true, annual_sales_man: 20000, sales_dropped: true, is_rent: true, income_tier: 'mid' });
-    expect(m.map((x) => x.id)).toEqual(['demo', 'restart']);
+  it('연매출 1.2억이면 바우처 없음, 성장기반자금 있음', () => {
+    const m = matchSubsidies({ ...base, status: 'run', opened_before_2025: false, annual_sales_man: 12000, income_tier: 'high' });
+    expect(ids(m)).not.toContain('voucher');
+    expect(ids(m)).toContain('loan-growth');
+    expect(ids(m)).toContain('newbiz');
+    expect(ids(m)).not.toContain('vat-simple');
   });
-  it('폐업 + 자가 → 재창업만', () => {
+  it('연매출 4,800만 미만이면 부가세 면제 안내', () => {
+    const m = matchSubsidies({ ...base, status: 'run', annual_sales_man: 3000 });
+    expect(ids(m)).toContain('vat-free');
+    expect(ids(m)).not.toContain('vat-simple');
+  });
+  it('소득 하위면 근로장려금·신용취약 자금 안내', () => {
+    const m = matchSubsidies({ ...base, status: 'run', income_tier: 'low' });
+    expect(ids(m)).toEqual(expect.arrayContaining(['eitc', 'loan-weak']));
+  });
+  it('폐업 + 월세 → 철거비·재창업·폐업 지원, 바우처·노란우산 가입 안내 없음', () => {
+    const m = matchSubsidies({ ...base, status: 'think', annual_sales_man: 20000, sales_dropped: true, is_rent: true });
+    expect(ids(m)).toEqual(expect.arrayContaining(['demo', 'restart', 'close-consult', 'job', 'unemp', 'yellow-close', 'retry-loan', 'newstart']));
+    expect(ids(m)).not.toEqual(expect.arrayContaining(['voucher']));
+    expect(ids(m)).not.toContain('yellow');
+  });
+  it('폐업 + 자가 → 철거비 없음', () => {
     const m = matchSubsidies({ status: 'closed', opened_before_2025: null, annual_sales_man: 3000, sales_dropped: null, is_rent: false, income_tier: null });
-    expect(m.map((x) => x.id)).toEqual(['restart']);
+    expect(ids(m)).toContain('restart');
+    expect(ids(m)).not.toContain('demo');
+  });
+  it('제도 id는 겹치지 않고, 전체 제도는 25개 이상이다', () => {
+    const all = new Set<string>();
+    for (const status of ['run', 'think', 'closed'] as const)
+      for (const sales of [3000, 8500, 20000])
+        for (const tier of ['low', 'mid', 'high', null] as const)
+          for (const dropped of [true, false])
+            for (const rent of [true, false])
+              for (const before of [true, false]) {
+                const m = matchSubsidies({ status, opened_before_2025: before, annual_sales_man: sales, sales_dropped: dropped, is_rent: rent, income_tier: tier });
+                expect(new Set(ids(m)).size).toBe(m.length);
+                m.forEach((x) => { all.add(x.id); expect(x.todo.length).toBeGreaterThan(0); });
+              }
+    expect(all.size).toBeGreaterThanOrEqual(25);
   });
 });
 

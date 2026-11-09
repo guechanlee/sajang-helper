@@ -2,7 +2,22 @@
 import { useState } from 'react';
 import { useStore } from '@/components/StoreProvider';
 import { man } from '@/lib/format';
-import { matchSubsidies, RULES_CHECKED_ON, totalMax } from '@/lib/subsidy';
+import { matchSubsidies, RULES_CHECKED_ON, totalMax, type Kind, type SubsidyMatch } from '@/lib/subsidy';
+
+const GROUPS: { kind: Kind; title: string; desc: string }[] = [
+  { kind: 'grant', title: '받는 돈 · 지원', desc: '갚지 않아도 되는 지원금과 혜택이에요.' },
+  { kind: 'tax', title: '세금 줄이기', desc: '내야 할 세금이 줄어드는 제도예요.' },
+  { kind: 'loan', title: '대출 · 보증', desc: '낮은 금리로 빌리는 돈이에요. 갚아야 해서 위쪽 합계에는 넣지 않았어요.' },
+  { kind: 'info', title: '알아두면 좋은 제도', desc: '금액보다 절차와 요건을 챙기면 좋은 제도예요.' },
+];
+
+function amountText(x: SubsidyMatch) {
+  if (x.max == null) return x.kind === 'info' ? '혜택 안내' : '금액은 공고에서 확인';
+  const m = `${Math.round(x.max / 10_000).toLocaleString('ko-KR')}만 원`;
+  if (x.kind === 'tax') return `세금 약 ${m}`;
+  if (x.kind === 'loan') return `최대 ${m} 대출`;
+  return `최대 ${m}`;
+}
 import type { StoreProfile } from '@/lib/types';
 
 type Answers = Partial<{ biz: string; status: string; open: string; sales: number; drop: string; rent: string; income: string }>;
@@ -96,17 +111,27 @@ export default function SubsidyPage() {
   const label = `${{ cafe: '카페', food: '음식점', pub: '주점' }[store.biz_type ?? 'food']} · ${{ run: '운영 중', think: '폐업 고민', closed: '폐업' }[store.status]} · 연매출 ${(store.annual_sales_man ?? 0).toLocaleString('ko-KR')}만 원`;
   return (
     <>
-      <div className="hero"><span className="lbl">{label}</span><h1>최대 <span className="num" style={{ color: 'var(--accent)' }}>{man(total)}만 원</span>까지<br />확인해 볼 수 있어요</h1></div>
+      <div className="hero"><span className="lbl">{label}</span><h1>제도 {matches.length}개를 찾았어요<br />받는 돈·세금 합계 최대 <span className="num" style={{ color: 'var(--accent)' }}>{man(total)}만 원</span></h1></div>
       {matches.length === 0 && <div className="card"><h3>지금 맞는 지원금이 없어요</h3><p className="hint">조건이 바뀌면 다시 알려드릴게요.</p></div>}
-      {matches.map((x) => (
-        <div className="card" key={x.id}>
-          <div className="row sp"><span className={`pill ${x.level}`}>{x.tag}</span><span className="hint">{x.due}</span></div>
-          <h3>{x.name}</h3>
-          <div className="amount">{x.isTaxSaving ? '세금 약 ' : '최대 '}{man(x.max)}만 원</div>
-          <p className="hint">{x.why}</p>
-          <div className="sub"><span className="lbl">신청 순서</span><ol>{x.todo.map((t) => <li key={t}>{t}</li>)}</ol></div>
-        </div>
-      ))}
+      {GROUPS.map((g) => {
+        const list = matches.filter((x) => x.kind === g.kind);
+        if (list.length === 0) return null;
+        return (
+          <div key={g.kind}>
+            <h2 style={{ margin: '20px 0 4px' }}>{g.title} <span className="hint">{list.length}개</span></h2>
+            <p className="hint">{g.desc}</p>
+            {list.map((x) => (
+              <div className="card" key={x.id}>
+                <div className="row sp"><span className={`pill ${x.level}`}>{x.tag}</span><span className="hint">{x.due}</span></div>
+                <h3>{x.name}</h3>
+                <div className="amount">{amountText(x)}</div>
+                <p className="hint">{x.why}</p>
+                <div className="sub"><span className="lbl">신청 순서</span><ol>{x.todo.map((t) => <li key={t}>{t}</li>)}</ol></div>
+              </div>
+            ))}
+          </div>
+        );
+      })}
       <button className="btn line" onClick={() => { setDraft({}); setStep(1); setWizard(true); }}>답변 다시 입력</button>
       <div className="note">표시된 금액은 사업 안내의 상한이에요. 실제 지급액은 심사와 예산에 따라 달라요. 공식 공고 확인 후 신청하세요. (조건 확인일 {RULES_CHECKED_ON})</div>
     </>

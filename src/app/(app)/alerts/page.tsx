@@ -12,7 +12,7 @@ export default function AlertsPage() {
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
   const now = useMemo(() => new Date(), []);
-  const open = store.profile_done ? matchSubsidies(store).filter((m) => m.id !== 'yellow').length : 0;
+  const open = store.profile_done ? matchSubsidies(store).filter((m) => m.kind === 'grant' || m.kind === 'loan').length : 0;
   const alerts = buildAlerts(store, now, open);
 
   async function download() {
