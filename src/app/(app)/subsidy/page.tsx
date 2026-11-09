@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { BackToMore } from '@/components/BackToMore';
 import { useStore } from '@/components/StoreProvider';
 import { man } from '@/lib/format';
 import { matchSubsidies, RULES_CHECKED_ON, totalMax, type Kind, type SubsidyMatch } from '@/lib/subsidy';
@@ -98,6 +99,7 @@ export default function SubsidyPage() {
   if (!store.profile_done) {
     return (
       <>
+        <BackToMore />
         <div className="hero"><span className="lbl">지원금 찾기</span><h1>내 가게가 받을 수 있는 돈,<br />3분이면 찾아요</h1><p>질문 7개에 답하면 신청 가능한 지원금과 줄일 수 있는 세금을 한 번에 보여드려요.</p></div>
         <button className="btn" onClick={() => { setDraft({}); setStep(1); setWizard(true); }}>내 지원금 찾기</button>
         <div className="note">지원 조건은 뉴스·블로그 요약을 바탕으로 한 안내예요. 신청 전에 반드시 공식 공고를 확인하세요. (조건 확인일 {RULES_CHECKED_ON})</div>
@@ -111,6 +113,7 @@ export default function SubsidyPage() {
   const label = `${{ cafe: '카페', food: '음식점', pub: '주점' }[store.biz_type ?? 'food']} · ${{ run: '운영 중', think: '폐업 고민', closed: '폐업' }[store.status]} · 연매출 ${(store.annual_sales_man ?? 0).toLocaleString('ko-KR')}만 원`;
   return (
     <div className="results">
+      <BackToMore />
       <div className="hero"><span className="lbl">{label}</span><h1>제도 {matches.length}개를 찾았어요<br />받는 돈·세금 합계 최대 <span className="num" style={{ color: 'var(--accent)' }}>{man(total)}만 원</span></h1></div>
       {matches.length === 0 && <div className="card"><h3>지금 맞는 지원금이 없어요</h3><p className="hint">조건이 바뀌면 다시 알려드릴게요.</p></div>}
       {GROUPS.map((g) => {

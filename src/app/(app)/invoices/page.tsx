@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { LedgerNav } from '@/components/LedgerNav';
 import { useStore } from '@/components/StoreProvider';
 import { menuRates } from '@/lib/calc';
 import { bookOf, loadCost, rowsByMenu, type CostData } from '@/lib/data';
@@ -125,6 +126,7 @@ export default function InvoicesPage() {
 
   return (
     <>
+      <LedgerNav />
       <div className="hero"><span className="lbl">매입</span><h1>거래명세서를 적으면<br />단가가 알아서 바뀌어요</h1><p>사진 인식은 아직 없어요. 지금은 직접 적어요.</p></div>
       {err && <p className="err" role="alert">{err}</p>}
       {msg && <p className="hint" role="status">{msg}</p>}

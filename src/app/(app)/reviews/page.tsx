@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
+import { BackToMore } from '@/components/BackToMore';
 import { useStore } from '@/components/StoreProvider';
 import { placePage, SMARTPLACE_ADMIN } from '@/lib/place';
 import { draftReplies, SOURCES, summarize } from '@/lib/reviews';
@@ -66,6 +67,7 @@ export default function ReviewsPage() {
 
   return (
     <>
+      <BackToMore />
       <div className="hero"><span className="lbl">리뷰 관리</span><h1>답글 안 단 리뷰를<br />놓치지 않게 챙겨요</h1><p>네이버 리뷰는 앱이 자동으로 가져올 수 없어요. 스마트플레이스에서 리뷰를 복사해 여기에 기록하면 답글 초안과 미답변 관리를 도와드려요.</p></div>
 
       <div className="card">
@@ -87,7 +89,7 @@ export default function ReviewsPage() {
           <a className="btn line" href={SMARTPLACE_ADMIN} target="_blank" rel="noopener noreferrer">스마트플레이스에서 리뷰 보기</a>
           {link && <a className="btn line" href={link} target="_blank" rel="noopener noreferrer">내 플레이스 페이지</a>}
         </div>
-        {!link && <p className="hint">내 가게 주소를 저장해 두면 바로 열 수 있어요. <Link href="/alerts" className="lnk">가게 정보 입력</Link></p>}
+        {!link && <p className="hint">내 가게 주소를 저장해 두면 바로 열 수 있어요. <Link href="/more" className="lnk">가게 정보 입력</Link></p>}
       </div>
 
       {err && <p className="err" role="alert">{err}</p>}

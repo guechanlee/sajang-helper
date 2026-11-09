@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
+import { LedgerNav } from '@/components/LedgerNav';
 import { useStore } from '@/components/StoreProvider';
 import { settlementYm, monthOf } from '@/lib/dates';
 import { man, won } from '@/lib/format';
@@ -24,7 +25,7 @@ export default function StockPage() {
   useEffect(() => { void reload(); }, [reload]);
 
   if (!ings) return err ? <p className="err" role="alert">{err}</p> : <p className="hint">불러오는 중…</p>;
-  if (!ings.length) return <div className="hero"><span className="lbl">재고·발주</span><h1>먼저 원가 탭에서<br />재료를 넣어 주세요</h1></div>;
+  if (!ings.length) return <><LedgerNav /><div className="hero"><span className="lbl">재고·발주</span><h1>먼저 원가 탭에서<br />재료를 넣어 주세요</h1></div></>;
 
   const patch = (id: string, p: Partial<Ingredient>) => setIngs(ings.map((i) => (i.id === id ? { ...i, ...p } : i)));
   const save = async (id: string, col: 'stock' | 'order_qty') => {
@@ -59,6 +60,7 @@ export default function StockPage() {
   const vendors = [...new Set(ings.filter(hit).map((i) => i.vendor || '거래처 미지정'))];
   return (
     <>
+      <LedgerNav />
       <div className="hero"><span className="lbl">재고·발주</span><h1>지금 가진 재고는<br />{man(Math.round(total))}만원어치예요</h1></div>
       {err && <p className="err" role="alert">{err}</p>}
       {msg && <p className="hint" role="status">{msg}</p>}

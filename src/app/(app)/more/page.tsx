@@ -1,6 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { useStore } from '@/components/StoreProvider';
+import Link from 'next/link';
 import { StoreForm } from '@/components/StoreForm';
 import { buildAlerts } from '@/lib/dates';
 import { matchSubsidies } from '@/lib/subsidy';
@@ -43,9 +44,12 @@ export default function AlertsPage() {
 
   return (
     <>
-      <div className="hero"><span className="lbl">더보기</span><h1>가게 정보와<br />놓치면 아까운 날짜</h1><p>세금 기한은 실제 날짜예요. 지원금 마감일은 공고마다 달라서 공식 공고에서 확인해 주세요. 자동 알림 발송은 아직 없어요.</p></div>
+      <div className="hero"><span className="lbl">더보기</span><h1>지원금, 리뷰,<br />가게 정보</h1></div>
+      <Link href="/subsidy" className="card list-link"><div className="row sp"><div><h3>지원금 찾기</h3><span className="hint">내 가게가 받을 수 있는 돈과 줄일 수 있는 세금</span></div><span className="hint" aria-hidden="true">›</span></div></Link>
+      <Link href="/reviews" className="card list-link"><div className="row sp"><div><h3>리뷰 관리</h3><span className="hint">답글 안 단 리뷰 챙기기, 답글 초안</span></div><span className="hint" aria-hidden="true">›</span></div></Link>
       <StoreForm />
       <h2 style={{ fontSize: 18, margin: '8px 0 -4px' }}>놓치면 아까운 날짜</h2>
+      <p className="hint" style={{ marginTop: -8 }}>세금 기한은 실제 날짜예요. 지원금 마감일은 공고마다 달라서 공식 공고에서 확인해 주세요.</p>
       {alerts.map((a) => (
         <div className="card" key={a.key}><div className="row"><div className="dday">{a.dday === null ? a.tag : `D-${a.dday}`}</div><div style={{ flex: 1 }}><h3>{a.title}</h3><p className="hint">{a.sub}</p></div></div></div>
       ))}

@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { LedgerNav } from '@/components/LedgerNav';
 import { useStore } from '@/components/StoreProvider';
 import { monthTips, settle } from '@/lib/calc';
 import { monthOf, settlementYm } from '@/lib/dates';
@@ -169,6 +170,7 @@ export default function MonthPage() {
 
   return (
     <>
+      <LedgerNav />
       <div className="hero"><span className="lbl">월 정산</span><h1>{monthOf(ym)}월에 얼마 남았는지<br />차례로 적어요</h1><p>모르는 칸은 비워도 돼요. 아는 것부터 넣으면 아래 결과가 바로 바뀌어요. 보통은 지난달을 정산해요. 이번 달 진행 상황도 → 로 넘겨서 적어 볼 수 있어요.</p></div>
       <div className="row sp monthnav">
         <button className="btn line" aria-label="이전 달" disabled={ym <= shiftYm(defaultYm, -23)} onClick={() => setYm(shiftYm(ym, -1))}>←</button>

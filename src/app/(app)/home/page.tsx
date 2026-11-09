@@ -62,7 +62,7 @@ export default function HomePage() {
 
   // 아직 안 한 것만 카드로 보여준다. 다 했으면 아무것도 나오지 않는다.
   const todo: { title: string; sub: string; href: string }[] = [];
-  if (store.name === '내 가게') todo.unshift({ title: '내 가게 등록하기', sub: '가게 이름과 스마트플레이스 주소를 저장해 두면 바로 열 수 있어요', href: '/alerts' });
+  if (store.name === '내 가게') todo.unshift({ title: '내 가게 등록하기', sub: '가게 이름과 스마트플레이스 주소를 저장해 두면 바로 열 수 있어요', href: '/more' });
   if (!store.profile_done) todo.push({ title: '받을 수 있는 지원금 찾기', sub: '질문 7개에 답하면 돼요 (3분)', href: '/subsidy' });
   if (withRecipe.length === 0) todo.push({ title: '메뉴 원가 계산해 보기', sub: '재료 가격과 레시피를 넣거나, 예시 데이터로 먼저 둘러봐요', href: '/cost' });
   if (month === null) todo.push({ title: `${monthOf(ym)}월 정산 적기`, sub: '매출과 비용을 넣으면 남은 돈이 나와요', href: '/month' });
@@ -112,7 +112,7 @@ export default function HomePage() {
       )}
 
       <div className="card">
-        <div className="row sp"><h3>다가오는 날짜</h3><Link href="/alerts" className="lnk">더보기</Link></div>
+        <div className="row sp"><h3>다가오는 날짜</h3><Link href="/more" className="lnk">더보기</Link></div>
         {dates.map((a) => (
           <div className="row" key={a.key}><div className="dday">D-{a.dday}</div><div style={{ flex: 1 }}><b>{a.title}</b><div className="hint">{a.sub}</div></div></div>
         ))}
