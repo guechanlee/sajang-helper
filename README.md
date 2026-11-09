@@ -42,6 +42,14 @@ docker compose exec db mysqldump -uroot -proot-local-only sajang > backup.sql
 docker compose exec -T db mysql -uroot -proot-local-only sajang < backup.sql   # 복원
 ```
 
+## 더미 데이터로 둘러보기
+
+```
+docker compose exec app node scripts/seed-dummy.mjs
+```
+
+`dummy@test.local` / `dummypass1234` 계정에 재료 60개, 메뉴 28개, 명세서 45건, 최근 4개월 정산, 리뷰 70개를 넣어요. 다시 실행하면 그 계정의 데이터만 지우고 새로 넣어요.
+
 ## 가게 등록·스마트플레이스·리뷰
 
 - **더보기 탭**에서 가게 이름·주소·전화·사업자등록번호를 저장하고, 네이버 플레이스 주소를 넣어 두면 스마트플레이스와 내 플레이스 페이지를 바로 열어요.

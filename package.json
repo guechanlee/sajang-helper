@@ -10,7 +10,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "db:init": "node scripts/db-init.mjs",
-    "user:create": "node scripts/create-user.mjs"
+    "user:create": "node scripts/create-user.mjs",
+    "seed:dummy": "node scripts/seed-dummy.mjs"
   },
   "keywords": [],
   "author": "",
