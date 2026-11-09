@@ -110,15 +110,15 @@ export default function SubsidyPage() {
   const total = totalMax(matches);
   const label = `${{ cafe: '카페', food: '음식점', pub: '주점' }[store.biz_type ?? 'food']} · ${{ run: '운영 중', think: '폐업 고민', closed: '폐업' }[store.status]} · 연매출 ${(store.annual_sales_man ?? 0).toLocaleString('ko-KR')}만 원`;
   return (
-    <>
+    <div className="results">
       <div className="hero"><span className="lbl">{label}</span><h1>제도 {matches.length}개를 찾았어요<br />받는 돈·세금 합계 최대 <span className="num" style={{ color: 'var(--accent)' }}>{man(total)}만 원</span></h1></div>
       {matches.length === 0 && <div className="card"><h3>지금 맞는 지원금이 없어요</h3><p className="hint">조건이 바뀌면 다시 알려드릴게요.</p></div>}
       {GROUPS.map((g) => {
         const list = matches.filter((x) => x.kind === g.kind);
         if (list.length === 0) return null;
         return (
-          <div key={g.kind}>
-            <h2 style={{ margin: '20px 0 4px' }}>{g.title} <span className="hint">{list.length}개</span></h2>
+          <div className="group" key={g.kind}>
+            <h2>{g.title} <span className="hint">{list.length}개</span></h2>
             <p className="hint">{g.desc}</p>
             {list.map((x) => (
               <div className="card" key={x.id}>
@@ -134,6 +134,6 @@ export default function SubsidyPage() {
       })}
       <button className="btn line" onClick={() => { setDraft({}); setStep(1); setWizard(true); }}>답변 다시 입력</button>
       <div className="note">표시된 금액은 사업 안내의 상한이에요. 실제 지급액은 심사와 예산에 따라 달라요. 공식 공고 확인 후 신청하세요. (조건 확인일 {RULES_CHECKED_ON})</div>
-    </>
+    </div>
   );
 }
