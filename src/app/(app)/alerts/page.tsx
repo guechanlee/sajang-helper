@@ -42,7 +42,7 @@ export default function AlertsPage() {
 
   return (
     <>
-      <div className="hero"><span className="lbl">알림</span><h1>놓치면 아까운 날짜</h1><p>세금 기한은 실제 날짜예요. 지원금 마감은 공고가 열리면 채워 넣어요.</p></div>
+      <div className="hero"><span className="lbl">알림</span><h1>놓치면 아까운 날짜</h1><p>세금 기한은 실제 날짜예요. 지원금 마감일은 공고마다 달라서 공식 공고에서 확인해 주세요. 자동 알림 발송은 아직 없어요.</p></div>
       {alerts.map((a) => (
         <div className="card" key={a.key}><div className="row"><div className="dday">{a.dday === null ? a.tag : `D-${a.dday}`}</div><div style={{ flex: 1 }}><h3>{a.title}</h3><p className="hint">{a.sub}</p></div></div></div>
       ))}

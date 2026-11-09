@@ -26,6 +26,8 @@ export default function InvoicesPage() {
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
   const [seq, setSeq] = useState(1);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [detail, setDetail] = useState<Record<string, { name: string; qty: number; price: number }[]>>({});
 
   const reload = useCallback(async () => {
     try {
@@ -80,6 +82,15 @@ export default function InvoicesPage() {
     if (error) { setErr('저장하지 못했어요. 입력값을 확인해 주세요.'); return; }
     setMsg(changes.length ? `저장했어요. 재료 단가 ${changes.length}개가 바뀌었어요.` : '저장했어요.');
     reset(); await reload();
+  }
+
+  async function toggleDetail(id: string) {
+    if (openId === id) { setOpenId(null); return; }
+    setOpenId(id);
+    if (detail[id]) return;
+    const { data, error } = await sb.from('invoice_items').select('name,qty,unit_price_won').eq('invoice_id', id);
+    if (error) { setErr('품목을 불러오지 못했어요.'); return; }
+    setDetail((o) => ({ ...o, [id]: (data ?? []).map((x) => ({ name: String(x.name), qty: Number(x.qty), price: Number(x.unit_price_won) })) }));
   }
 
   async function remove(id: string) {
@@ -139,10 +150,20 @@ export default function InvoicesPage() {
       <div className="card"><h3>최근 거래명세서</h3>
         {list.length === 0 && <p className="hint">아직 없어요.</p>}
         {list.map((i) => (
-          <div className="row sp" key={i.id}>
-            <div><b>{i.vendor}</b><div className="hint">{i.issued_on}</div></div>
-            <div style={{ textAlign: 'right' }}><b className="num">{won(i.total)}원</b>
-              <div><button className="xbtn" style={{ fontSize: 13 }} onClick={() => void remove(i.id)}>{armed === i.id ? '한 번 더 누르면 삭제' : '삭제'}</button></div></div>
+          <div className="inv" key={i.id}>
+            <div className="row sp">
+              <button className="inv-main" aria-expanded={openId === i.id} onClick={() => void toggleDetail(i.id)}>
+                <b>{i.vendor}</b><span className="hint">{i.issued_on} · {openId === i.id ? '접기' : '품목 보기'}</span>
+              </button>
+              <div style={{ textAlign: 'right' }}><b className="num">{won(i.total)}원</b>
+                <div><button className="xbtn" style={{ fontSize: 13 }} onClick={() => void remove(i.id)}>{armed === i.id ? '한 번 더 누르면 삭제' : '삭제'}</button></div></div>
+            </div>
+            {openId === i.id && (
+              <ul className="inv-items">
+                {(detail[i.id] ?? []).length === 0 && <li className="hint">불러오는 중…</li>}
+                {(detail[i.id] ?? []).map((x, k) => <li key={k}><span>{x.name}</span><span className="num">{won(x.price)}원 × {x.qty}</span></li>)}
+              </ul>
+            )}
           </div>
         ))}</div>
     </>

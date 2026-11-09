@@ -39,7 +39,7 @@ export function buildAlerts(profile: Pick<StoreProfile, 'status' | 'is_rent' | '
     head.push({ key: 'demo', title: '철거 공사 전에 철거비 신청', sub: '철거 후에는 신청할 수 없어요', dday: null, tag: '공사 전' });
   }
   if (profile?.profile_done && openSubsidies > 0) {
-    head.push({ key: 'open', title: `신청 가능한 지원금 ${openSubsidies}건`, sub: '공고가 열리면 알려드릴게요 (알림 발송은 다음 단계)', dday: null, tag: '대기' });
+    head.push({ key: 'open', title: `확인해 볼 지원금·대출 ${openSubsidies}건`, sub: '지원금 탭에서 신청 순서를 확인하세요. 자동 알림 발송은 아직 없어요.', dday: null, tag: '확인' });
   }
   return [...head, ...out];
 }

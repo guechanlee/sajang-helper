@@ -109,11 +109,11 @@ export default function CostPage() {
               <div className="inp" style={{ width: 124 }}><input aria-label="거래처" maxLength={60} value={i.vendor} placeholder="거래처" onChange={(e) => patchIng(i.id, { vendor: e.target.value })} onBlur={() => saveIng(i.id)} /></div>
             </div>
             <div className="row">
-              <div className="inp" style={{ flex: 1 }}><input aria-label="한 포장 무게" type="number" inputMode="decimal" value={numVal(i.spec_g)} onChange={(e) => patchIng(i.id, { spec_g: Number(e.target.value) })} onBlur={() => saveIng(i.id)} /><span>g 한 포장</span></div>
-              <div className="inp" style={{ flex: 1 }}><input aria-label="한 포장 가격" type="number" inputMode="numeric" value={numVal(i.price)} onChange={(e) => patchIng(i.id, { price: Number(e.target.value) })} onBlur={() => saveIng(i.id)} /><span>원</span></div>
+              <div className="inp" style={{ flex: 1 }}><input aria-label="한 포장 무게" type="number" inputMode="decimal" placeholder="0" value={numVal(i.spec_g)} onChange={(e) => patchIng(i.id, { spec_g: Number(e.target.value) })} onBlur={() => saveIng(i.id)} /><span>g 한 포장</span></div>
+              <div className="inp" style={{ flex: 1 }}><input aria-label="한 포장 가격" type="number" inputMode="numeric" placeholder="0" value={numVal(i.price)} onChange={(e) => patchIng(i.id, { price: Number(e.target.value) })} onBlur={() => saveIng(i.id)} /><span>원</span></div>
             </div>
             <div className="row sp">
-              <div className="inp" style={{ width: 132 }}><input aria-label="버리는 비율" type="number" inputMode="decimal" value={numVal(i.loss_pct)} onChange={(e) => patchIng(i.id, { loss_pct: Number(e.target.value) })} onBlur={() => saveIng(i.id)} /><span>버리는 %</span></div>
+              <div className="inp" style={{ width: 132 }}><input aria-label="버리는 비율" type="number" inputMode="decimal" placeholder="0" value={numVal(i.loss_pct)} onChange={(e) => patchIng(i.id, { loss_pct: Number(e.target.value) })} onBlur={() => saveIng(i.id)} /><span>버리는 %</span></div>
               <span>g당 <b className="num" style={{ fontSize: 18 }}>{ingredientUnit(i).toFixed(2)}</b>원</span>
             </div>
             <button className="xbtn" style={{ fontSize: 13, alignSelf: 'flex-end' }} onClick={async () => {
@@ -122,13 +122,13 @@ export default function CostPage() {
             }}>{armed === i.id ? '이 재료를 쓰는 레시피 행도 함께 지워져요. 한 번 더 누르면 삭제' : '삭제'}</button>
           </div>
         ))}
-        <button className="btn ghost" onClick={async () => { if (await run(sb.from('ingredients').insert({ store_id: store.id, name: '새 재료', spec_g: 1000, price: 0 }))) await reload(); }}>원재료 추가</button>
+        <button className="btn ghost" onClick={async () => { if (await run(sb.from('ingredients').insert({ store_id: store.id, name: '새 재료', spec_g: 1000, price: 0 }))) { await reload(); setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50); } }}>원재료 추가</button>
         {d.preps.length > 0 && (
           <div className="card"><h3>반제품</h3>
             {d.preps.map((p) => (
               <div className="row sp" key={p.id}>
                 <div><div>{p.name}</div><div className="hint">재료 {d.prepRows.filter((r) => r.prep_id === p.id).length}개</div></div>
-                <div className="inp" style={{ width: 130 }}><input aria-label={`${p.name} 완성량`} type="number" inputMode="decimal" value={numVal(p.yield_g)}
+                <div className="inp" style={{ width: 130 }}><input aria-label={`${p.name} 완성량`} type="number" inputMode="decimal" placeholder="0" value={numVal(p.yield_g)}
                   onChange={(e) => setD({ ...d, preps: d.preps.map((x) => (x.id === p.id ? { ...x, yield_g: Number(e.target.value) } : x)) })}
                   onBlur={() => { const y = Math.max(1, p.yield_g || 1); void run(sb.from('preps').update({ yield_g: y }).eq('id', p.id)); }} /><span>g 나옴</span></div>
                 <b className="num">{prepUnit(p, book).toFixed(2)}</b>
@@ -159,7 +159,7 @@ export default function CostPage() {
         <div className="card">
           <div className="row">
             <div className="field" style={{ flex: 1.4 }}><label htmlFor="mn">메뉴 이름</label><div className="inp"><input id="mn" maxLength={80} value={menu.name} onChange={(e) => patchMenu({ name: e.target.value })} onBlur={saveMenu} /></div></div>
-            <div className="field" style={{ flex: 1 }}><label htmlFor="mp">판매가</label><div className="inp"><input id="mp" type="number" inputMode="numeric" value={numVal(menu.price)} onChange={(e) => patchMenu({ price: Number(e.target.value) })} onBlur={saveMenu} /><span>원</span></div></div>
+            <div className="field" style={{ flex: 1 }}><label htmlFor="mp">판매가</label><div className="inp"><input id="mp" type="number" inputMode="numeric" placeholder="0" value={numVal(menu.price)} onChange={(e) => patchMenu({ price: Number(e.target.value) })} onBlur={saveMenu} /><span>원</span></div></div>
           </div>
           <div className="field"><label htmlFor="mc">분류</label>
             <select id="mc" className="sel" value={menu.category} onChange={(e) => { patchMenu({ category: e.target.value }); void run(sb.from('menus').update({ category: e.target.value }).eq('id', menu.id)); }}>{CATS.map((c) => <option key={c}>{c}</option>)}</select></div>
@@ -173,11 +173,12 @@ export default function CostPage() {
         </div>
         <div className="card"><span className="lbl">레시피 (1인분 사용량 g)</span>
           {err && <p className="err" role="alert">{err}</p>}
+          {rows.length === 0 && <p className="hint">아직 재료가 없어요. 아래에서 재료를 골라 추가하면 원가율이 계산돼요.</p>}
           {rows.map((r) => (
             <div className="rrow" key={r.id}>
               <div className="row sp"><div style={{ minWidth: 0 }}><b>{nameOf(r)}</b> <span className="hint num">{unitOf(r).toFixed(2)}원/g</span></div>
                 <button className="xbtn" aria-label="삭제" onClick={async () => { if (await run(sb.from('menu_rows').delete().eq('id', r.id))) await reload(); }}>×</button></div>
-              <div className="row"><div className="inp" style={{ flex: 1 }}><input aria-label={`${nameOf(r)} 사용량`} type="number" inputMode="decimal" value={numVal(r.qty_g)} onChange={(e) => setRow(r.id, Number(e.target.value))}
+              <div className="row"><div className="inp" style={{ flex: 1 }}><input aria-label={`${nameOf(r)} 사용량`} type="number" inputMode="decimal" placeholder="0" value={numVal(r.qty_g)} onChange={(e) => setRow(r.id, Number(e.target.value))}
                 onBlur={() => void run(sb.from('menu_rows').update({ qty_g: Math.max(0, r.qty_g || 0) }).eq('id', r.id))} /><span>g 사용</span></div>
                 <div className="num rc">= <b>{won(r.qty_g * unitOf(r))}</b>원</div></div>
             </div>
@@ -212,14 +213,16 @@ export default function CostPage() {
       {cats.map((c) => {
         const ms = d.menus.filter((m) => m.category === c);
         const rates = ms.map((m) => costRate(menuCost(byMenu.get(m.id) ?? [], book), m.price));
-        const avg = rates.reduce((a, b) => a + b, 0) / (rates.length || 1);
+        const filled = rates.filter((_, i) => (byMenu.get(ms[i]!.id) ?? []).length > 0);
+        const avg = filled.reduce((a, b) => a + b, 0) / (filled.length || 1);
         return (
           <div className="card" key={c}>
-            <div className="row sp"><h3>{c}</h3><span className={`pill ${rateLevel(avg)}`}>평균 {pct(avg)}%</span></div>
+            <div className="row sp"><h3>{c}</h3>{filled.length > 0 && <span className={`pill ${rateLevel(avg)}`}>평균 {pct(avg)}%</span>}</div>
             <div className="tw"><table><thead><tr><th>메뉴</th><th>원가</th><th>판매가</th><th>원가율</th></tr></thead><tbody>
               {ms.map((m, idx) => {
+                const empty = (byMenu.get(m.id) ?? []).length === 0;
                 const co = menuCost(byMenu.get(m.id) ?? [], book), r = rates[idx] ?? 0;
-                return <tr key={m.id}><td><button className="lnk" onClick={() => setSel(m.id)}>{m.name}</button></td><td>{won(co)}</td><td>{won(m.price)}</td><td><span className={`pill ${rateLevel(r)}`}>{pct(r)}%</span></td></tr>;
+                return <tr key={m.id}><td><button className="lnk" onClick={() => setSel(m.id)}>{m.name}</button></td><td>{empty ? '-' : won(co)}</td><td>{won(m.price)}</td><td>{empty ? <span className="pill mut">레시피 없음</span> : <span className={`pill ${rateLevel(r)}`}>{pct(r)}%</span>}</td></tr>;
               })}
             </tbody></table></div>
           </div>

@@ -90,7 +90,8 @@ export default function MonthPage() {
 
   async function importInvoices() {
     setErr('');
-    const start = `${ym}-01`, end = `${ym}-31`;
+    const [yy, mm] = ym.split('-').map(Number) as [number, number];
+    const start = `${ym}-01`, end = `${ym}-${String(new Date(yy, mm, 0).getDate()).padStart(2, '0')}`; // 그 달의 실제 마지막 날
     const { data: inv, error } = await sb.from('invoices').select('id,vendor').gte('issued_on', start).lte('issued_on', end);
     if (error) { setErr('거래명세서를 불러오지 못했어요.'); return; }
     if (!inv?.length) { setMsg('이번 정산 달에 입력된 거래명세서가 없어요.'); return; }
@@ -132,7 +133,7 @@ export default function MonthPage() {
 
   return (
     <>
-      <div className="hero"><span className="lbl">{monthOf(ym)}월 정산</span><h1>{monthOf(ym)}월에 얼마 남았는지<br />차례로 적어요</h1><p>모르는 칸은 비워도 돼요. 아는 것부터 넣으면 아래 결과가 바로 바뀌어요.</p></div>
+      <div className="hero"><span className="lbl">{monthOf(ym)}월 정산</span><h1>{monthOf(ym)}월에 얼마 남았는지<br />차례로 적어요</h1><p>모르는 칸은 비워도 돼요. 아는 것부터 넣으면 아래 결과가 바로 바뀌어요. 정산은 항상 지난달 기준이에요.</p></div>
       <div className="card"><h3>1. 매출</h3>
         {field('hall', '홀·포장 매출')}{field('deliv', '배달 매출 (수수료 뺀 정산금)')}
         <div className="row">{field('receipts', '결제 건수', '건')}{field('days', '영업일', '일')}</div></div>
@@ -149,7 +150,7 @@ export default function MonthPage() {
         {field('open', '월초 재고 금액', '만원', '지난달 정산이 있으면 그 월말 재고가 자동으로 들어와요.')}
         <div className="row sp"><span className="hint">월말 재고 금액</span><button className="lnk" onClick={() => void importStock()}>재고 탭에서 가져오기</button></div>
         {field('close', '월말 재고 금액')}
-        {field('theory', '레시피대로 썼다면 재료비 (선택)', '만원', '모르면 비워 두세요. 있으면 낭비·손실 비율을 계산해요.')}</div>
+        {field('theory', '이론 재료비 (선택)', '만원', '메뉴를 전부 레시피대로 만들었다면 들었을 재료값이에요. 넣으면 실제 재료비와 비교해 낭비·손실 비율을 보여줘요. 모르면 비워 두세요.')}</div>
       <div className="card"><h3>3. 그 밖의 비용</h3>
         {field('labor', '직원 월급')}{field('ins', '4대보험')}{field('rent', '월세·관리비')}{field('util', '전기·가스·수도')}{field('waste', '포장재·소모품')}{field('etc', '기타')}{field('tax', '세금 (부가세 등)')}</div>
 

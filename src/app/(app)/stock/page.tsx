@@ -66,8 +66,8 @@ export default function StockPage() {
             <div className="rrow" key={i.id}>
               <div className="row sp"><b>{i.name}</b><span className="hint num">{won(i.stock * i.price)}원</span></div>
               <div className="row">
-                <div className="inp" style={{ flex: 1 }}><input aria-label={`${i.name} 재고`} type="number" inputMode="decimal" min={0} value={numVal(i.stock)} onChange={(e) => patch(i.id, { stock: Number(e.target.value) })} onBlur={() => void save(i.id, 'stock')} /><span>포장 재고</span></div>
-                <div className="inp" style={{ flex: 1 }}><input aria-label={`${i.name} 발주`} type="number" inputMode="decimal" min={0} value={numVal(i.order_qty)} onChange={(e) => patch(i.id, { order_qty: Number(e.target.value) })} onBlur={() => void save(i.id, 'order_qty')} /><span>포장 발주</span></div>
+                <div className="inp" style={{ flex: 1 }}><input aria-label={`${i.name} 재고`} type="number" inputMode="decimal" min={0} placeholder="0" value={numVal(i.stock)} onChange={(e) => patch(i.id, { stock: Number(e.target.value) })} onBlur={() => void save(i.id, 'stock')} /><span>포장 재고</span></div>
+                <div className="inp" style={{ flex: 1 }}><input aria-label={`${i.name} 발주`} type="number" inputMode="decimal" min={0} placeholder="0" value={numVal(i.order_qty)} onChange={(e) => patch(i.id, { order_qty: Number(e.target.value) })} onBlur={() => void save(i.id, 'order_qty')} /><span>포장 발주</span></div>
               </div>
             </div>
           ))}</div>
