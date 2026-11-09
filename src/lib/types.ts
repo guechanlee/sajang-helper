@@ -17,6 +17,7 @@ export type StoreProfile = {
   is_rent: boolean | null;
   income_tier: 'low' | 'mid' | 'high' | 'unk' | null;
   profile_done: boolean;
+  region: string | null;
 };
 
 export type Settlement = {

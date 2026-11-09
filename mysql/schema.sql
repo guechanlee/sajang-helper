@@ -34,6 +34,7 @@ create table if not exists stores (
   is_rent boolean null,
   income_tier varchar(10) null check (income_tier in ('low','mid','high','unk')),
   profile_done boolean not null default false,
+  region varchar(20) null check (region in ('서울특별시','부산광역시','대구광역시','인천광역시','광주광역시','대전광역시','울산광역시','세종특별자치시','경기도','강원특별자치도','충청북도','충청남도','전북특별자치도','전라남도','경상북도','경상남도','제주특별자치도')),
   created_at datetime(3) not null default current_timestamp(3),
   -- v1은 사장님 1명당 가게 1개. 여러 가게를 지원할 때 이 유니크 키만 제거하면 된다.
   unique key stores_one_per_owner (owner_id),
@@ -176,4 +177,25 @@ create table if not exists checklist_checks (
   checked boolean not null default true,
   primary key (store_id, ym, idx),
   foreign key (store_id) references stores(id) on delete cascade
+) engine=InnoDB default charset=utf8mb4;
+
+-- 정부 지원사업 공고(기업마당 등에서 가져온 것). 모든 사장님이 같이 보는 공개 자료라 store_id가 없다.
+-- scripts/sync-programs.mjs 가 채우고, 앱은 /api/programs 로만 읽는다(브라우저가 이 표를 직접 조회하지 못한다).
+create table if not exists programs (
+  id bigint auto_increment primary key,
+  source varchar(20) not null,
+  ext_id varchar(100) not null,
+  name varchar(300) not null,
+  summary text null,
+  org varchar(200) not null default '',
+  target varchar(300) not null default '',
+  category varchar(100) not null default '',
+  hashtags varchar(500) not null default '',
+  apply_start date null,
+  apply_end date null,
+  apply_text varchar(200) not null default '',
+  url varchar(500) not null default '',
+  synced_at datetime(3) not null default current_timestamp(3),
+  unique key programs_src_ext (source, ext_id),
+  key programs_end (apply_end)
 ) engine=InnoDB default charset=utf8mb4;

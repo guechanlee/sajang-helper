@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { Programs } from '@/components/Programs';
 import { useStore } from '@/components/StoreProvider';
 import { man } from '@/lib/format';
 import { matchSubsidies, RULES_CHECKED_ON, totalMax } from '@/lib/subsidy';
@@ -107,6 +108,7 @@ export default function SubsidyPage() {
           <div className="sub"><span className="lbl">신청 순서</span><ol>{x.todo.map((t) => <li key={t}>{t}</li>)}</ol></div>
         </div>
       ))}
+      <Programs />
       <button className="btn line" onClick={() => { setDraft({}); setStep(1); setWizard(true); }}>답변 다시 입력</button>
       <div className="note">표시된 금액은 사업 안내의 상한이에요. 실제 지급액은 심사와 예산에 따라 달라요. 공식 공고 확인 후 신청하세요. (조건 확인일 {RULES_CHECKED_ON})</div>
     </>
