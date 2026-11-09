@@ -18,6 +18,7 @@
 body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.55;margin:0;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 #app{max-width:480px;margin:0 auto;padding-block:20px 96px;display:flex;flex-direction:column;gap:16px}
+main{display:flex;flex-direction:column;gap:16px;min-width:0}
 h1,h2,h3,p{margin:0;text-wrap:balance}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
