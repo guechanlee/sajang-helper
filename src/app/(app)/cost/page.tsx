@@ -25,6 +25,7 @@ export default function CostPage() {
   const [armed, setArmed] = useState<string | null>(null);
   const [addRef, setAddRef] = useState('');
   const [units, setUnits] = useState<Record<string, Unit>>({});
+  const [q, setQ] = useState('');
 
   const reload = useCallback(async () => {
     try { setD(await loadCost(sb)); setErr(''); } catch { setErr('불러오지 못했어요. 새로고침해 주세요.'); }
@@ -108,7 +109,11 @@ export default function CostPage() {
         <div className="hero"><span className="lbl">원재료 단가표</span><h1>산 가격만 넣으면<br />g당 단가가 나와요</h1></div>
         {header}
         {err && <p className="err" role="alert">{err}</p>}
-        {d.ingredients.map((i) => (
+        {d.ingredients.length > 6 && (
+          <div className="inp"><input aria-label="재료 검색" type="search" placeholder={`재료·거래처 검색 (전체 ${d.ingredients.length}개)`} value={q} onChange={(e) => setQ(e.target.value)} /></div>
+        )}
+        {q.trim() && d.ingredients.filter((i) => `${i.name} ${i.vendor}`.includes(q.trim())).length === 0 && <p className="hint">찾는 재료가 없어요.</p>}
+        {d.ingredients.filter((i) => !q.trim() || `${i.name} ${i.vendor}`.includes(q.trim())).map((i) => (
           <div className="card" key={i.id}>
             <div className="row sp">
               <div className="inp" style={{ flex: 1 }}><input aria-label="재료명" maxLength={80} value={i.name} onChange={(e) => patchIng(i.id, { name: e.target.value })} onBlur={() => saveIng(i.id)} /></div>

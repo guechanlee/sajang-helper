@@ -13,6 +13,7 @@ export default function StockPage() {
   const [ings, setIngs] = useState<Ingredient[] | null>(null);
   const [err, setErr] = useState('');
   const [msg, setMsg] = useState('');
+  const [q, setQ] = useState('');
 
   const reload = useCallback(async () => {
     const { data, error } = await sb.from('ingredients').select('*').order('vendor').order('name');
@@ -54,15 +55,18 @@ export default function StockPage() {
     try { await navigator.clipboard.writeText(text); setMsg('발주서를 복사했어요.'); } catch { setMsg('복사하지 못했어요. 글자를 길게 눌러 복사해 주세요.'); }
   }
 
-  const vendors = [...new Set(ings.map((i) => i.vendor || '거래처 미지정'))];
+  const hit = (i: Ingredient) => !q.trim() || `${i.name} ${i.vendor}`.includes(q.trim());
+  const vendors = [...new Set(ings.filter(hit).map((i) => i.vendor || '거래처 미지정'))];
   return (
     <>
       <div className="hero"><span className="lbl">재고·발주</span><h1>지금 가진 재고는<br />{man(Math.round(total))}만원어치예요</h1></div>
       {err && <p className="err" role="alert">{err}</p>}
       {msg && <p className="hint" role="status">{msg}</p>}
+      {ings.length > 6 && <div className="inp"><input aria-label="재료 검색" type="search" placeholder={`재료·거래처 검색 (전체 ${ings.length}개)`} value={q} onChange={(e) => setQ(e.target.value)} /></div>}
+      {q.trim() && vendors.length === 0 && <p className="hint">찾는 재료가 없어요.</p>}
       {vendors.map((v) => (
         <div className="card" key={v}><h3>{v}</h3>
-          {ings.filter((i) => (i.vendor || '거래처 미지정') === v).map((i) => (
+          {ings.filter((i) => hit(i) && (i.vendor || '거래처 미지정') === v).map((i) => (
             <div className="rrow" key={i.id}>
               <div className="row sp"><b>{i.name}</b><span className="hint num">{won(i.stock * i.price)}원</span></div>
               <div className="row">

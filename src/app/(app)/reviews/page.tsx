@@ -21,6 +21,7 @@ export default function ReviewsPage() {
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const [more, setMore] = useState(20);
 
   const reload = useCallback(async () => {
     const { data, error } = await sb.from('reviews').select('*').order('reviewed_on', { ascending: false }).limit(300);
@@ -114,13 +115,13 @@ export default function ReviewsPage() {
 
       {list.length > 0 && (
         <div className="seg">
-          <button aria-pressed={filter === 'open'} onClick={() => setFilter('open')}>답글 안 단 것 {sum.unreplied}</button>
-          <button aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>전체 {sum.count}</button>
+          <button aria-pressed={filter === 'open'} onClick={() => { setFilter('open'); setMore(20); }}>답글 안 단 것 {sum.unreplied}</button>
+          <button aria-pressed={filter === 'all'} onClick={() => { setFilter('all'); setMore(20); }}>전체 {sum.count}</button>
         </div>
       )}
       {list.length > 0 && shown.length === 0 && <div className="card"><p className="hint">답글 안 단 리뷰가 없어요. 잘 챙기고 계세요.</p></div>}
 
-      {shown.map((r) => (
+      {shown.slice(0, more).map((r) => (
         <div className="card" key={r.id}>
           <div className="row sp"><span className="stars" aria-label={`${r.rating}점`}>{stars(r.rating)}</span><span className="hint">{SOURCES[r.source]} · {r.reviewed_on}</span></div>
           {(r.author || r.body) && <div><b>{r.author || '익명'}</b>{r.body && <p className="rbody">{r.body}</p>}</div>}
@@ -146,6 +147,7 @@ export default function ReviewsPage() {
           )}
         </div>
       ))}
+      {shown.length > more && <button className="btn line" onClick={() => setMore(more + 20)}>더 보기 ({shown.length - more}개 남음)</button>}
       <div className="note">리뷰에 답글을 달면 다른 손님도 볼 수 있어요. 개인정보나 보상 약속은 쓰지 않는 게 좋아요. 답글은 스마트플레이스에서 직접 등록해야 해요.</div>
     </>
   );
