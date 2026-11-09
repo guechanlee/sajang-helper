@@ -1,14 +1,13 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { isConfigured } from '@/lib/supabase/env';
-import { sbServer } from '@/lib/supabase/server';
+import { getSessionUser } from '@/lib/db/auth';
+import { isConfigured } from '@/lib/db/env';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   if (isConfigured()) {
-    const { data } = await (await sbServer()).auth.getUser();
-    if (data.user) redirect('/subsidy');
+    if (await getSessionUser()) redirect('/subsidy');
   }
   return (
     <div id="app">
@@ -21,7 +20,7 @@ export default async function Home() {
       {isConfigured() ? (
         <Link className="btn" href="/login">시작하기</Link>
       ) : (
-        <div className="note">서비스 설정이 아직 끝나지 않았어요. README의 &quot;처음 설정&quot;을 따라 Supabase 주소와 키를 넣어 주세요.</div>
+        <div className="note">서비스 설정이 아직 끝나지 않았어요. README의 &quot;처음 설정&quot;을 따라 데이터베이스(MySQL) 주소를 넣어 주세요.</div>
       )}
       <div className="note">지원금 조건은 뉴스·블로그 요약 기준이에요. 신청 전에 반드시 공식 공고를 확인하세요. <Link href="/privacy">개인정보 처리 안내</Link></div>
     </div>

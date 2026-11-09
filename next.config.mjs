@@ -1,6 +1,4 @@
 const isDev = process.env.NODE_ENV !== 'production';
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseHost = supabaseUrl ? new URL(supabaseUrl).host : '*.supabase.co';
 
 // 보안 헤더. 스크립트는 Next가 넣는 인라인 코드 때문에 'unsafe-inline'을 허용한다.
 // 나중에 nonce 기반 CSP로 더 조이는 것이 목표.
@@ -10,7 +8,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  `connect-src 'self' https://${supabaseHost} wss://${supabaseHost}${isDev ? ' ws://localhost:*' : ''}`,
+  `connect-src 'self'${isDev ? ' ws://localhost:*' : ''}`, // 브라우저는 우리 서버(/api)하고만 통신한다.
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

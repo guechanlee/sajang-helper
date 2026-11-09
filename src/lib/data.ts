@@ -1,10 +1,10 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { DbClient } from './db/client';
 import type { CostBook } from './calc';
 import type { Ingredient, Menu, MenuRow, Prep, PrepRow } from './types';
 
 export type CostData = { ingredients: Ingredient[]; preps: Prep[]; prepRows: PrepRow[]; menus: Menu[]; menuRows: MenuRow[] };
 
-export async function loadCost(sb: SupabaseClient): Promise<CostData> {
+export async function loadCost(sb: DbClient): Promise<CostData> {
   const [i, p, pr, m, mr] = await Promise.all([
     sb.from('ingredients').select('*').order('created_at'),
     sb.from('preps').select('*').order('name'),
