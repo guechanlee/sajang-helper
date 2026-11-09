@@ -57,29 +57,21 @@ export default function HomePage() {
   const subsidyN = store.profile_done ? matchSubsidies(store).filter((x) => x.kind === 'grant' || x.kind === 'loan').length : 0;
   const dates = buildAlerts(store, now, 0).filter((a) => a.dday !== null).slice(0, 2);
 
-  const steps: { done: boolean; title: string; sub: string; href: string }[] = [
-    { done: store.profile_done, title: '받을 수 있는 지원금 찾기', sub: '질문 7개, 3분이면 돼요', href: '/subsidy' },
-    { done: d.menus.length > 0 && withRecipe.length > 0, title: '메뉴 원가 만들기', sub: '재료 가격과 레시피를 넣거나, 예시로 먼저 둘러봐요', href: '/cost' },
-    { done: month !== null, title: `${monthOf(ym)}월 정산 적기`, sub: '매출과 비용을 넣으면 남은 돈이 나와요', href: '/month' },
-  ];
-  const doneN = steps.filter((s) => s.done).length;
+  // 아직 안 한 것만 카드로 보여준다. 다 했으면 아무것도 나오지 않는다.
+  const todo: { title: string; sub: string; href: string }[] = [];
+  if (!store.profile_done) todo.push({ title: '받을 수 있는 지원금 찾기', sub: '질문 7개에 답하면 돼요 (3분)', href: '/subsidy' });
+  if (withRecipe.length === 0) todo.push({ title: '메뉴 원가 계산해 보기', sub: '재료 가격과 레시피를 넣거나, 예시 데이터로 먼저 둘러봐요', href: '/cost' });
+  if (month === null) todo.push({ title: `${monthOf(ym)}월 정산 적기`, sub: '매출과 비용을 넣으면 남은 돈이 나와요', href: '/month' });
 
   return (
     <>
-      <div className="hero"><span className="lbl">오늘의 가게</span><h1>사장님, 오늘 챙길 것만<br />모아 봤어요</h1></div>
+      <div className="hero"><span className="lbl">오늘의 가게</span><h1>오늘 챙길 것만<br />모아 봤어요</h1></div>
 
-      {doneN < steps.length && (
-        <div className="card">
-          <div className="row sp"><h3>시작 가이드</h3><span className="hint num">{doneN} / {steps.length}</span></div>
-          {steps.map((s) => (
-            <Link key={s.href} href={s.href} className="step">
-              <span className={`stepdot ${s.done ? 'on' : ''}`} aria-hidden="true">{s.done ? '✓' : ''}</span>
-              <span style={{ flex: 1 }}><b>{s.title}</b><span className="hint" style={{ display: 'block' }}>{s.sub}</span></span>
-              <span className="hint" aria-hidden="true">›</span>
-            </Link>
-          ))}
-        </div>
-      )}
+      {todo.map((t) => (
+        <Link key={t.href} href={t.href} className="card list-link">
+          <div className="row sp"><div><h3>{t.title}</h3><span className="hint">{t.sub}</span></div><span className="hint" aria-hidden="true">›</span></div>
+        </Link>
+      ))}
 
       {month && (
         <Link href="/month" className="card list-link">
