@@ -17,10 +17,6 @@ const strip = (sql) => sql.split('\n').filter((l) => !l.trim().startsWith('--'))
 for (const stmt of strip(readFileSync('mysql/schema.sql', 'utf8')).split(';')) {
   if (stmt.trim()) await conn.query(stmt);
 }
-// 예전에 만든 DB에 새 컬럼 추가(여러 번 실행해도 안전).
-const [cols] = await conn.query("select column_name from information_schema.columns where table_schema = database() and table_name = 'stores' and column_name = 'region'");
-if (!cols.length) await conn.query("alter table stores add column region varchar(20) null check (region in ('서울특별시','부산광역시','대구광역시','인천광역시','광주광역시','대전광역시','울산광역시','세종특별자치시','경기도','강원특별자치도','충청북도','충청남도','전북특별자치도','전라남도','경상북도','경상남도','제주특별자치도'))");
-
 // 예전 버전이 만든 트리거가 남아 있으면 지운다(트리거는 SUPER 권한이 없는 일반 사용자로는 만들 수 없어서 쓰지 않는다).
 for (const t of ['invoice_items_same_store_ins', 'invoice_items_same_store_upd']) {
   try { await conn.query(`drop trigger if exists ${t}`); } catch { /* 권한이 없으면 그냥 둔다 */ }

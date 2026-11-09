@@ -11,7 +11,7 @@ export const useStore = () => {
   return c;
 };
 
-const COLS = 'id,name,biz_type,status,opened_before_2025,annual_sales_man,sales_dropped,is_rent,income_tier,profile_done,region';
+const COLS = 'id,name,biz_type,status,opened_before_2025,annual_sales_man,sales_dropped,is_rent,income_tier,profile_done';
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [sb] = useState(() => dbClient());

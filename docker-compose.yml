@@ -23,8 +23,6 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: mysql://sajang:sajang-local-only@db:3306/sajang
-      # 정부 공고 동기화용 기업마당 인증키. 같은 폴더의 .env 파일에 BIZINFO_API_KEY=키 로 적어 두면 들어간다(없어도 앱은 뜬다).
-      BIZINFO_API_KEY: ${BIZINFO_API_KEY:-}
     ports:
       - "127.0.0.1:3000:3000"
 volumes:
