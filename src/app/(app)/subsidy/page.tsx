@@ -73,9 +73,9 @@ export default function SubsidyPage() {
   if (wizard && step >= 1) {
     const s = STEPS[step - 1]!;
     return (
-      <>
+      <div className="wiz">
         <div className="progress"><i style={{ width: `${(step / STEPS.length) * 100}%` }} /></div>
-        <div className="row sp"><button className="xbtn" onClick={() => (step <= 1 ? setWizard(false) : setStep(step - 1))} aria-label="이전">←</button><span className="hint num">{step} / {STEPS.length}</span></div>
+        <div className="row sp wiz-top"><button className="xbtn" onClick={() => (step <= 1 ? setWizard(false) : setStep(step - 1))} aria-label="이전">←</button><span className="hint num">{step} / {STEPS.length}</span></div>
         <h2 className="q">{s.q}</h2>
         {s.h && <p className="hint">{s.h}</p>}
         {s.t === 'c' ? (
@@ -90,7 +90,7 @@ export default function SubsidyPage() {
           </>
         )}
         {err && <p className="err" role="alert">{err}</p>}
-      </>
+      </div>
     );
   }
 

@@ -42,8 +42,15 @@ button{cursor:pointer}
 .progress>i{display:block;height:100%;background:var(--accent);transition:width .25s}
 .q{font-size:24px;font-weight:800;line-height:1.35;letter-spacing:-.03em}
 .hint{color:var(--muted);font-size:13px}
-.choices{display:flex;flex-direction:column;gap:10px}
-.choice{background:var(--card);border:2px solid transparent;border-radius:16px;padding:16px;text-align:left;font-weight:500;font-size:16px}
+.wiz{display:flex;flex-direction:column;gap:20px;padding:4px 0 24px}
+.wiz-top{margin-top:4px}
+.wiz .q{margin-top:12px}
+.wiz .q+.hint{margin-top:-10px}
+.wiz .choices{margin-top:8px}
+.wiz .chips{margin-top:-4px}
+.wiz .btn{margin-top:8px}
+.choices{display:flex;flex-direction:column;gap:12px}
+.choice{background:var(--card);border:2px solid transparent;border-radius:16px;padding:18px 16px;min-height:56px;text-align:left;font-weight:500;font-size:16px}
 .choice[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:13px;color:var(--muted);font-weight:500}
