@@ -1,6 +1,7 @@
 // 더미 데이터를 넣는다: dummy@test.local / dummypass1234 계정에 재료 60개, 메뉴 28개, 명세서 45건, 월 정산 4개월, 리뷰 70개.
 // 이미 있으면 그 계정의 데이터를 지우고 다시 넣는다. 다른 계정은 건드리지 않는다.
-// 사용(Docker): docker compose exec app node scripts/seed-dummy.mjs
+// 사용(Docker): docker compose exec app node scripts/seed-dummy.mjs [이메일]
+//   이메일을 주면 그 계정(이미 있어야 해요)에 넣는다. 예: ... seed-dummy.mjs admin@sajang.local  (그 계정의 기존 데이터는 지워진다)
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { randomUUID as id } from 'node:crypto';
@@ -13,9 +14,11 @@ if (!process.env.DATABASE_URL && existsSync('.env.local')) {
   }
 }
 if (!process.env.DATABASE_URL) { console.error('DATABASE_URL 이 없어요.'); process.exit(1); }
-execFileSync('node', ['scripts/create-user.mjs', 'dummy@test.local', 'dummypass1234'], { stdio: 'inherit', env: process.env });
+const EMAIL = (process.argv[2] ?? 'dummy@test.local').trim().toLowerCase();
+if (EMAIL === 'dummy@test.local') execFileSync('node', ['scripts/create-user.mjs', EMAIL, 'dummypass1234'], { stdio: 'inherit', env: process.env });
 const c = await mysql.createConnection(process.env.DATABASE_URL);
-const [[u]] = await c.query("select id from users where email='dummy@test.local'");
+const [[u]] = await c.query('select id from users where email = ?', [EMAIL]);
+if (!u) { console.error(`${EMAIL} 계정이 없어요. 먼저 create-user.mjs 로 만들어 주세요.`); process.exit(1); }
 let [[s]] = await c.query('select id from stores where owner_id=?', [u.id]);
 if (!s) { const sid = id(); await c.query('insert into stores (id, owner_id) values (?,?)', [sid, u.id]); s = { id: sid }; }
 const S = s.id;
@@ -42,4 +45,4 @@ const bodies = ['맛있어요! 또 올게요 😊', '음식이 너무 늦게 나
 for (let i = 0; i < 70; i++) await c.query('insert into reviews (id,store_id,source,author,rating,body,reviewed_on,reply,replied) values (?,?,?,?,?,?,?,?,?)', [id(), S, ['naver','kakao','google','baemin','coupang','etc'][i % 6], i % 4 === 0 ? '' : `손님${i}`, 1 + (i * 7) % 5, bodies[i % bodies.length], day(i), i % 3 === 0 ? '감사합니다 :)' : '', i % 3 === 0]);
 const [[n]] = await c.query('select (select count(*) from ingredients where store_id=?) ing, (select count(*) from menus where store_id=?) menus, (select count(*) from invoices where store_id=?) inv, (select count(*) from reviews where store_id=?) rv', [S, S, S, S]);
 console.log(n); await c.end();
-console.log('끝났어요. 아이디 dummy@test.local / 비밀번호 dummypass1234 로 로그인하세요.');
+console.log(EMAIL === 'dummy@test.local' ? '끝났어요. 아이디 dummy@test.local / 비밀번호 dummypass1234 로 로그인하세요.' : `끝났어요. ${EMAIL} 로 로그인하면 더미 데이터가 보여요.`);

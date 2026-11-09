@@ -48,7 +48,7 @@ docker compose exec -T db mysql -uroot -proot-local-only sajang < backup.sql   #
 docker compose exec app node scripts/seed-dummy.mjs
 ```
 
-`dummy@test.local` / `dummypass1234` 계정에 재료 60개, 메뉴 28개, 명세서 45건, 최근 4개월 정산, 리뷰 70개를 넣어요. 다시 실행하면 그 계정의 데이터만 지우고 새로 넣어요.
+`dummy@test.local` / `dummypass1234` 계정에(뒤에 이메일을 적으면 그 계정에) 재료 60개, 메뉴 28개, 명세서 45건, 최근 4개월 정산, 리뷰 70개를 넣어요. 다시 실행하면 그 계정의 데이터만 지우고 새로 넣어요.
 
 ## 가게 등록·스마트플레이스·리뷰
 
