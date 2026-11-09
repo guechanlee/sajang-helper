@@ -13,6 +13,7 @@ export type SubsidyMatch = {
   name: string;
   max: number | null;     // 원. null이면 공고에서 확인
   level: 'good' | 'warn';
+  fit: number;            // 0~100. 내가 답한 조건에 얼마나 맞는지 어림한 값 (실제 선정 확률이 아님)
   tag: string;
   why: string;
   todo: string[];
@@ -29,8 +30,26 @@ const YELLOW: Record<'low' | 'mid' | 'high' | 'unk', [number, number]> = {
   unk: [4_000_000, 0.264],
 };
 
+// 조건 부합도: 입력한 답으로 확인되는 조건이 많을수록 높게, 직원 수·신용·예산 경쟁처럼 앱이 모르는 조건이 크면 낮게 잡은 어림값이다.
+const FIT: Record<string, number> = {
+  voucher: 80, improve: 55, demo: 70, restart: 60, yellow: 95,
+  'loan-general': 75, 'loan-weak': 50, 'loan-refi': 50, 'loan-growth': 55, hs119: 40,
+  smartshop: 35, 'employment-ins': 85, duruanu: 40, hire24: 35, edu: 90, eitc: 45,
+  'vat-free': 90, 'vat-simple': 80, 'card-fee': 95, lease: 90, newbiz: 90,
+  'close-consult': 85, job: 80, unemp: 40, 'yellow-close': 40, 'retry-loan': 60, newstart: 45,
+};
+
+function fitOf(id: string, p: ProfileInput): number {
+  let v = FIT[id] ?? 50;
+  if (id === 'hs119' && p.income_tier === 'low') v = 65;
+  if (id === 'eitc' && p.income_tier === 'low') v = 60;
+  if (id === 'loan-weak' && p.sales_dropped === true && p.income_tier === 'low') v = 65;
+  if (id === 'voucher' && (p.annual_sales_man ?? 0) < 4800) v = 90;
+  return v;
+}
+
 export function matchSubsidies(p: ProfileInput): SubsidyMatch[] {
-  const out: SubsidyMatch[] = [];
+  const out: Omit<SubsidyMatch, 'fit'>[] = [];
   const salesWon = (p.annual_sales_man ?? 0) * 10_000;
   const run = p.status === 'run';
 
@@ -238,7 +257,7 @@ export function matchSubsidies(p: ProfileInput): SubsidyMatch[] {
       due: '접수 기간 확인',
     });
   }
-  return out;
+  return out.map((m) => ({ ...m, fit: fitOf(m.id, p) }));
 }
 
 // 합계에는 받는 돈과 줄어드는 세금만 넣는다. 대출은 갚아야 하는 돈이라 뺀다.

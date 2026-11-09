@@ -137,7 +137,7 @@ describe('지원금 매칭', () => {
               for (const before of [true, false]) {
                 const m = matchSubsidies({ status, opened_before_2025: before, annual_sales_man: sales, sales_dropped: dropped, is_rent: rent, income_tier: tier });
                 expect(new Set(ids(m)).size).toBe(m.length);
-                m.forEach((x) => { all.add(x.id); expect(x.todo.length).toBeGreaterThan(0); });
+                m.forEach((x) => { all.add(x.id); expect(x.fit).toBeGreaterThanOrEqual(0); expect(x.fit).toBeLessThanOrEqual(100); expect(x.todo.length).toBeGreaterThan(0); });
               }
     expect(all.size).toBeGreaterThanOrEqual(25);
   });

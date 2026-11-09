@@ -51,6 +51,10 @@ button{cursor:pointer}
 .results .card .amount{margin:2px 0}
 .results .card .sub{margin-top:4px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
 .results .card ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.fit{display:flex;flex-direction:column;gap:6px}
+.fit-top{display:flex;justify-content:space-between;font-size:13px}
+.fit-bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.fit-bar>i{display:block;height:100%;background:var(--accent);border-radius:6px}
 .wiz{display:flex;flex-direction:column;gap:20px;padding:4px 0 24px}
 .wiz-top{margin-top:4px}
 .wiz .q{margin-top:12px}

@@ -114,7 +114,7 @@ export default function SubsidyPage() {
       <div className="hero"><span className="lbl">{label}</span><h1>제도 {matches.length}개를 찾았어요<br />받는 돈·세금 합계 최대 <span className="num" style={{ color: 'var(--accent)' }}>{man(total)}만 원</span></h1></div>
       {matches.length === 0 && <div className="card"><h3>지금 맞는 지원금이 없어요</h3><p className="hint">조건이 바뀌면 다시 알려드릴게요.</p></div>}
       {GROUPS.map((g) => {
-        const list = matches.filter((x) => x.kind === g.kind);
+        const list = matches.filter((x) => x.kind === g.kind).sort((a, b) => b.fit - a.fit);
         if (list.length === 0) return null;
         return (
           <div className="group" key={g.kind}>
@@ -125,6 +125,10 @@ export default function SubsidyPage() {
                 <div className="row sp"><span className={`pill ${x.level}`}>{x.tag}</span><span className="hint">{x.due}</span></div>
                 <h3>{x.name}</h3>
                 <div className="amount">{amountText(x)}</div>
+                <div className="fit" role="img" aria-label={`조건 부합도 ${x.fit}%`}>
+                  <div className="fit-top"><span>내 조건 부합도 <b className="num">{x.fit}%</b></span><span className="hint">추정</span></div>
+                  <div className="fit-bar"><i style={{ width: `${x.fit}%` }} /></div>
+                </div>
                 <p className="hint">{x.why}</p>
                 <div className="sub"><span className="lbl">신청 순서</span><ol>{x.todo.map((t) => <li key={t}>{t}</li>)}</ol></div>
               </div>
@@ -133,7 +137,7 @@ export default function SubsidyPage() {
         );
       })}
       <button className="btn line" onClick={() => { setDraft({}); setStep(1); setWizard(true); }}>답변 다시 입력</button>
-      <div className="note">표시된 금액은 사업 안내의 상한이에요. 실제 지급액은 심사와 예산에 따라 달라요. 공식 공고 확인 후 신청하세요. (조건 확인일 {RULES_CHECKED_ON})</div>
+      <div className="note">표시된 금액은 사업 안내의 상한이에요. 부합도(%)는 입력한 답을 바탕으로 어림한 값이고, 실제 선정 확률이 아니에요. 실제 지급액은 심사와 예산에 따라 달라요. 공식 공고 확인 후 신청하세요. (조건 확인일 {RULES_CHECKED_ON})</div>
     </div>
   );
 }
