@@ -17,8 +17,9 @@ const strip = (sql) => sql.split('\n').filter((l) => !l.trim().startsWith('--'))
 for (const stmt of strip(readFileSync('mysql/schema.sql', 'utf8')).split(';')) {
   if (stmt.trim()) await conn.query(stmt);
 }
-for (const stmt of strip(readFileSync('mysql/triggers.sql', 'utf8')).split(/^\/\/\s*$/m)) {
-  if (stmt.trim()) await conn.query(stmt);
+// 예전 버전이 만든 트리거가 남아 있으면 지운다(트리거는 SUPER 권한이 없는 일반 사용자로는 만들 수 없어서 쓰지 않는다).
+for (const t of ['invoice_items_same_store_ins', 'invoice_items_same_store_upd']) {
+  try { await conn.query(`drop trigger if exists ${t}`); } catch { /* 권한이 없으면 그냥 둔다 */ }
 }
 await conn.end();
 console.log('스키마 준비 완료');

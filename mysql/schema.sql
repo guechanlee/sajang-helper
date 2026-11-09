@@ -152,7 +152,8 @@ create table if not exists invoices (
 
 -- 재료를 지워도 명세서 줄은 남아야 해서 ingredient_id만 null로 만든다.
 -- MySQL은 복합 외래키의 일부 열만 SET NULL 할 수 없으므로, 외래키는 ingredient_id 하나로 걸고
--- "같은 가게의 재료인지"는 아래 트리거가 검사한다.
+-- "같은 가게의 재료인지"는 서버 코드(query.ts, rpc.ts)가 검사한다.
+-- (트리거로 막을 수도 있지만, MySQL 기본 설정에서는 SUPER 권한이 없는 사용자가 트리거를 만들 수 없다.)
 create table if not exists invoice_items (
   id char(36) primary key,
   store_id char(36) not null,

@@ -133,6 +133,16 @@ async function selectRows(conn: PoolConnection | ReturnType<typeof pool>, t: Tab
   return shape(t, rows);
 }
 
+
+/** invoice_items.ingredient_id 는 외래키가 재료 id 하나에만 걸려 있어서, "내 가게의 재료인지"를 여기서 확인한다. */
+async function assertOwnIngredients(conn: Pick<PoolConnection, 'query'> | ReturnType<typeof pool>, ctx: Ctx, rows: Record<string, unknown>[]) {
+  const ids = [...new Set(rows.map((r) => r.ingredient_id).filter((v): v is string => typeof v === 'string'))];
+  if (!ids.length) return;
+  const [found] = await conn.query<RowDataPacket[]>(
+    `SELECT id FROM ingredients WHERE store_id = ? AND id IN (${ids.map(() => '?').join(',')})`, [ctx.storeId, ...ids]);
+  if (found.length !== ids.length) bad('다른 가게의 항목은 연결할 수 없어요.');
+}
+
 const tableName = (t: Table) => Object.keys(TABLES).find((k) => TABLES[k] === t)!;
 
 function finish(rows: Record<string, unknown>[], single: Req['single']): Result {
@@ -155,7 +165,6 @@ function mapDbError(e: unknown): Result {
     ER_DUP_ENTRY: '이미 있는 값이에요.',
     ER_NO_REFERENCED_ROW_2: '연결된 항목을 찾을 수 없어요.',
     ER_NO_REFERENCED_ROW: '연결된 항목을 찾을 수 없어요.',
-    ER_SIGNAL_EXCEPTION: '다른 가게의 항목은 연결할 수 없어요.',
     ER_DATA_TOO_LONG: '글자가 너무 길어요.',
     ER_WARN_DATA_OUT_OF_RANGE: '숫자가 너무 커요.',
     ER_TRUNCATED_WRONG_VALUE: '값이 올바르지 않아요.',
@@ -186,6 +195,7 @@ export async function run(ctx: Ctx, req: Req): Promise<Result> {
       if (req.op === 'update') {
         const [vals] = rowsToWrite(t, ctx, req.values, false);
         if (!vals || !Object.keys(vals).length) bad('바꿀 값이 없어요.');
+        if (name === 'invoice_items') await assertOwnIngredients(pool(), ctx, [vals!]);
         const keys = Object.keys(vals!);
         params.push(...keys.map((k) => vals![k]));
         sql = `UPDATE ${q(name)} SET ${keys.map((k) => `${q(k)} = ?`).join(', ')} WHERE `;
@@ -206,6 +216,7 @@ export async function run(ctx: Ctx, req: Req): Promise<Result> {
       const conn = await pool().getConnection();
       try {
         await conn.beginTransaction();
+        if (name === 'invoice_items') await assertOwnIngredients(conn, ctx, rows);
         for (const r of rows) {
           const keys = Object.keys(r);
           let sql = `INSERT INTO ${q(name)} (${keys.map(q).join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`;

@@ -102,10 +102,16 @@ d('가게별 데이터 분리', () => {
     expect(await fails(m.run(A, { table: 'menu_rows', op: 'insert', values: { menu_id: menu, ingredient_id: ingB, qty_g: 10 } }))).toBe(true);
     expect(await fails(m.run(A, { table: 'menu_rows', op: 'insert', values: { menu_id: menu, ingredient_id: ingA, qty_g: 10 } }))).toBe(false);
   });
-  it('남의 재료를 명세서 줄에 연결할 수 없다 (트리거)', async () => {
+  it('남의 재료를 명세서 줄에 연결할 수 없다', async () => {
     const before = await ok(m.run(A, { table: 'invoices', op: 'select' }));
-    await expect(m.saveInvoice(A, { p_vendor: '거래처', p_date: '2026-01-05', p_items: [{ name: 'x', ingredient_id: ingB, unit_price_won: 100, qty: 1 }] })).rejects.toThrow(/another store/);
+    await expect(m.saveInvoice(A, { p_vendor: '거래처', p_date: '2026-01-05', p_items: [{ name: 'x', ingredient_id: ingB, unit_price_won: 100, qty: 1 }] })).rejects.toThrow(/다른 가게/);
     expect(await ok(m.run(A, { table: 'invoices', op: 'select' }))).toHaveLength(before.length); // 명세서도 함께 취소
+  });
+  it('명세서 줄을 직접 넣거나 바꿀 때도 남의 재료는 연결할 수 없다', async () => {
+    const inv = (await ok(m.run(A, { table: 'invoices', op: 'insert', values: { vendor: 'v', issued_on: '2026-01-06' }, returning: 'id' })))[0].id;
+    expect((await m.run(A, { table: 'invoice_items', op: 'insert', values: { invoice_id: inv, ingredient_id: ingB, name: 'x', unit_price_won: 1, qty: 1 } })).error?.message).toMatch(/다른 가게/);
+    const item = (await ok(m.run(A, { table: 'invoice_items', op: 'insert', values: { invoice_id: inv, ingredient_id: ingA, name: 'ok', unit_price_won: 1, qty: 1 }, returning: 'id' })))[0].id;
+    expect((await m.run(A, { table: 'invoice_items', op: 'update', values: { ingredient_id: ingB }, filters: [{ col: 'id', op: 'eq', val: item }] })).error?.message).toMatch(/다른 가게/);
   });
 });
 

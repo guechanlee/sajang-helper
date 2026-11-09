@@ -32,6 +32,10 @@ export async function saveInvoice(ctx: Ctx, a: Record<string, unknown>): Promise
       const ing = typeof o.ingredient_id === 'string' && o.ingredient_id ? o.ingredient_id : null;
       const price = int(o.unit_price_won, 0);
       const qty = typeof o.qty === 'number' && Number.isFinite(o.qty) ? o.qty : bad('수량이 올바르지 않아요.');
+      if (ing) {
+        const [own] = await conn.query<import('mysql2').RowDataPacket[]>('SELECT 1 FROM ingredients WHERE id = ? AND store_id = ?', [ing, store]);
+        if (!own.length) bad('다른 가게의 항목은 연결할 수 없어요.');
+      }
       await conn.query(
         'INSERT INTO invoice_items (id, store_id, invoice_id, ingredient_id, name, unit_price_won, qty, taxed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         [randomUUID(), store, id, ing, str(o.name, 80), price, qty, o.taxed === true ? 1 : 0]);
