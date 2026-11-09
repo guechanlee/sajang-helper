@@ -124,7 +124,7 @@ export default function SubsidyPage() {
               <div className="card" key={x.id}>
                 <div className="row sp"><span className={`pill ${x.level}`}>{x.tag}</span><span className="hint">{x.due}</span></div>
                 <h3>{x.name}</h3>
-                <div className="amount">{amountText(x)}</div>
+                <div className={x.max == null ? 'amount unk' : 'amount'}>{amountText(x)}</div>
                 <div className="fit" role="img" aria-label={`조건 부합도 ${x.fit}%`}>
                   <div className="fit-top"><span>내 조건 부합도 <b className="num">{x.fit}%</b></span><span className="hint">추정</span></div>
                   <div className="fit-bar"><i style={{ width: `${x.fit}%` }} /></div>

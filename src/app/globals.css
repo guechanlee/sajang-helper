@@ -19,7 +19,11 @@ body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 #app{max-width:480px;margin:0 auto;padding-block:20px 96px;display:flex;flex-direction:column;gap:16px}
 main{display:flex;flex-direction:column;gap:16px;min-width:0}
-h1,h2,h3,p{margin:0;text-wrap:balance}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{text-wrap:balance}
+p{text-wrap:pretty}
+/* 한국어는 단어(어절) 중간에서 줄바꿈하지 않는다 */
+body{word-break:keep-all;overflow-wrap:break-word}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -148,3 +152,8 @@ textarea{font:inherit;color:inherit}
 .step{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);text-decoration:none;min-height:56px}
 .stepdot{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--accent-fg)}
 .stepdot.on{background:var(--good);border-color:var(--good)}
+
+.card .note{background:var(--bg)}
+.amount.unk{font-size:15px;font-weight:700;color:var(--muted);letter-spacing:0}
+input[type=date]{min-width:0}
+.hint.lead{display:block}

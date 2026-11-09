@@ -28,7 +28,7 @@ export default function LoginForm() {
   return (
     <>
       <div className="hero"><h1>{signup ? '처음이시군요' : '다시 오셨네요'}</h1><p>{signup ? '이메일과 비밀번호만 정하면 바로 시작해요.' : '가입한 이메일과 비밀번호로 들어와요.'}</p></div>
-      <form className="card" onSubmit={submit}>
+      <form noValidate className="card" onSubmit={submit}>
         <div className="field"><label htmlFor="email">이메일</label>
           <div className="inp big-in"><input id="email" type="email" autoComplete="email" inputMode="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} /></div></div>
         <div className="field"><label htmlFor="pw">비밀번호{signup ? ' (8자 이상)' : ''}</label>
