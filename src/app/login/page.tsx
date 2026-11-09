@@ -9,7 +9,7 @@ export default async function Login() {
   if (!isConfigured()) {
     return <div id="app"><div className="note">서비스 설정이 아직 끝나지 않았어요. README의 &quot;처음 설정&quot;을 확인해 주세요.</div></div>;
   }
-  if (await getSessionUser()) redirect('/subsidy');
+  if (await getSessionUser()) redirect('/home');
   return (
     <div id="app">
       <div className="top"><span className="brand">사장님 도우미</span></div>

@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   if (isConfigured()) {
-    if (await getSessionUser()) redirect('/subsidy');
+    if (await getSessionUser()) redirect('/home');
   }
   return (
     <div id="app">

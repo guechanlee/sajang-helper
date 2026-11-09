@@ -8,6 +8,10 @@ import { SAMPLE_INGREDIENTS, SAMPLE_MENUS, SAMPLE_PREPS } from '@/lib/sample';
 import type { Ingredient, MenuRow } from '@/lib/types';
 
 const CATS = ['식사류', '요리류', '사이드·음료'];
+// 재료 분류는 거래명세서의 부가세 계산에 쓰인다(공산품만 과세로 본다).
+const ING_CATS = ['공산품', '농산물', '정육', '해산물', '계란', '기타'];
+const UNITS = { g: 1, kg: 1000, L: 1000 } as const;
+type Unit = keyof typeof UNITS;
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, Number.isFinite(n) ? n : lo));
 const numVal = (n: number) => (n === 0 ? '' : n);
 
@@ -20,6 +24,7 @@ export default function CostPage() {
   const [busy, setBusy] = useState(false);
   const [armed, setArmed] = useState<string | null>(null);
   const [addRef, setAddRef] = useState('');
+  const [units, setUnits] = useState<Record<string, Unit>>({});
 
   const reload = useCallback(async () => {
     try { setD(await loadCost(sb)); setErr(''); } catch { setErr('불러오지 못했어요. 새로고침해 주세요.'); }
@@ -39,6 +44,7 @@ export default function CostPage() {
   if (!d || !book) return err ? <p className="err" role="alert">{err}</p> : <p className="hint">불러오는 중…</p>;
 
   const patchIng = (id: string, p: Partial<Ingredient>) => setD({ ...d, ingredients: d.ingredients.map((x) => (x.id === id ? { ...x, ...p } : x)) });
+  const unitOf = (i: Ingredient): Unit => units[i.id] ?? (i.spec_g >= 1000 && i.spec_g % 1000 === 0 ? 'kg' : 'g');
   const saveIng = (id: string) => {
     const i = d.ingredients.find((x) => x.id === id); if (!i) return;
     const v = { name: i.name.trim() || '이름 없음', vendor: i.vendor.trim(), category: i.category.trim() || '공산품',
@@ -109,8 +115,15 @@ export default function CostPage() {
               <div className="inp" style={{ width: 124 }}><input aria-label="거래처" maxLength={60} value={i.vendor} placeholder="거래처" onChange={(e) => patchIng(i.id, { vendor: e.target.value })} onBlur={() => saveIng(i.id)} /></div>
             </div>
             <div className="row">
-              <div className="inp" style={{ flex: 1 }}><input aria-label="한 포장 무게" type="number" inputMode="decimal" placeholder="0" value={numVal(i.spec_g)} onChange={(e) => patchIng(i.id, { spec_g: Number(e.target.value) })} onBlur={() => saveIng(i.id)} /><span>g 한 포장</span></div>
+              <div className="inp" style={{ flex: 1 }}><input aria-label="한 포장 무게" type="number" inputMode="decimal" placeholder="0" value={numVal(i.spec_g / UNITS[unitOf(i)])} onChange={(e) => patchIng(i.id, { spec_g: Number(e.target.value) * UNITS[unitOf(i)] })} onBlur={() => saveIng(i.id)} />
+                <select aria-label="무게 단위" value={unitOf(i)} onChange={(e) => setUnits({ ...units, [i.id]: e.target.value as Unit })}>{(Object.keys(UNITS) as Unit[]).map((u) => <option key={u} value={u}>{u} 한 포장</option>)}</select></div>
               <div className="inp" style={{ flex: 1 }}><input aria-label="한 포장 가격" type="number" inputMode="numeric" placeholder="0" value={numVal(i.price)} onChange={(e) => patchIng(i.id, { price: Number(e.target.value) })} onBlur={() => saveIng(i.id)} /><span>원</span></div>
+            </div>
+            <div className="row">
+              <select className="sel" aria-label="재료 분류" value={i.category} onChange={(e) => { patchIng(i.id, { category: e.target.value }); void run(sb.from('ingredients').update({ category: e.target.value }).eq('id', i.id)); }}>
+                {[...new Set([...ING_CATS, i.category])].map((c) => <option key={c}>{c}</option>)}
+              </select>
+              <span className="hint" style={{ flex: 1.4 }}>{i.category === '공산품' ? '거래명세서에서 부가세 10%가 붙어요' : '부가세 없는 품목으로 계산해요'}</span>
             </div>
             <div className="row sp">
               <div className="inp" style={{ width: 132 }}><input aria-label="버리는 비율" type="number" inputMode="decimal" placeholder="0" value={numVal(i.loss_pct)} onChange={(e) => patchIng(i.id, { loss_pct: Number(e.target.value) })} onBlur={() => saveIng(i.id)} /><span>버리는 %</span></div>

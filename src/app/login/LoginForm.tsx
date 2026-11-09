@@ -18,7 +18,7 @@ export default function LoginForm() {
       const res = await fetch(`/api/auth/${mode}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v, password: pw }) });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) { setMsg(body.error ?? '잠시 뒤 다시 시도해 주세요.'); setBusy(false); return; }
-      window.location.href = '/subsidy';
+      window.location.href = '/home';
     } catch {
       setMsg('서버에 연결하지 못했어요.'); setBusy(false);
     }

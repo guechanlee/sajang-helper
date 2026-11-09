@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from '@/components/StoreProvider';
 import { monthTips, settle } from '@/lib/calc';
 import { monthOf, settlementYm } from '@/lib/dates';
@@ -19,6 +19,7 @@ const CHECKS = [
 type Form = Record<'hall' | 'deliv' | 'receipts' | 'days' | 'open' | 'close' | 'theory' | 'labor' | 'ins' | 'rent' | 'util' | 'waste' | 'etc' | 'tax', string>;
 type PRow = { vendor: string; man: string };
 const EMPTY: Form = { hall: '', deliv: '', receipts: '', days: '30', open: '', close: '', theory: '', labor: '', ins: '', rent: '', util: '', waste: '', etc: '', tax: '' };
+const shiftYm = (ym: string, d: number) => { const [y, m] = ym.split('-').map(Number) as [number, number]; const t = new Date(y, m - 1 + d, 1); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}`; };
 const m2w = (s: string) => Math.max(0, manToWon(Number(s) || 0));
 const w2m = (w: number) => (w ? String(w / 10000) : '');
 
@@ -35,7 +36,9 @@ const toPurchases = (rows: PRow[]): Purchase[] => rows.filter((r) => r.vendor.tr
 
 export default function MonthPage() {
   const { sb, store } = useStore();
-  const ym = settlementYm(new Date());
+  const maxYm = settlementYm(new Date());
+  const [ym, setYm] = useState(maxYm);
+  const snap = useRef('');
   const [f, setF] = useState<Form>(EMPTY);
   const [rows, setRows] = useState<PRow[]>([]);
   const [checks, setChecks] = useState<Set<number>>(new Set());
@@ -45,7 +48,7 @@ export default function MonthPage() {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const prevYm = (() => { const [y, m] = ym.split('-').map(Number) as [number, number]; return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`; })();
+  const prevYm = shiftYm(ym, -1);
 
   const load = useCallback(async () => {
     try {
@@ -75,7 +78,18 @@ export default function MonthPage() {
       setReady(true); setErr('');
     } catch { setErr('불러오지 못했어요. 새로고침해 주세요.'); }
   }, [sb, ym, prevYm]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    setReady(false); setF(EMPTY); setRows([]); setChecks(new Set()); setPrev(null); setMsg(''); snap.current = '';
+    void load();
+  }, [load]);
+  // 불러온 직후의 값을 기억해 두고, 달라지면 "저장 안 됨"으로 본다.
+  useEffect(() => { if (ready && snap.current === '') snap.current = JSON.stringify({ f, rows }); }, [ready, f, rows]);
+  const dirty = ready && snap.current !== '' && snap.current !== JSON.stringify({ f, rows });
+  useEffect(() => {
+    if (!dirty) return;
+    const h = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    window.addEventListener('beforeunload', h); return () => window.removeEventListener('beforeunload', h);
+  }, [dirty]);
 
   if (!ready) return err ? <p className="err" role="alert">{err}</p> : <p className="hint">불러오는 중…</p>;
 
@@ -118,7 +132,7 @@ export default function MonthPage() {
     const { error } = await sb.rpc('save_settlement', { p_store: store.id, p_ym: ym, p_s: s, p_purchases: toPurchases(rows) });
     setBusy(false);
     if (error) { setErr('저장하지 못했어요. 숫자를 확인해 주세요.'); return; }
-    setMsg('저장했어요.');
+    snap.current = JSON.stringify({ f, rows }); setMsg('저장했어요.');
   }
 
   async function toggle(i: number) {
@@ -129,16 +143,40 @@ export default function MonthPage() {
   }
 
   const tips = monthTips(r);
+  const missing: string[] = [];
+  if (r.sales > 0) {
+    if (r.purchases === 0 && s.open_stock_won === 0 && s.close_stock_won === 0) missing.push('재료비');
+    if (r.labor === 0) missing.push('인건비');
+    if (r.rent === 0) missing.push('월세');
+  }
+  function downloadCsv() {
+    const rowsOut: [string, string | number][] = [
+      ['정산 월', ym], ['홀·포장 매출', s.hall_won], ['배달 매출', s.deliv_won], ['매출 합계', r.sales],
+      ['재료 매입 합계', r.purchases], ['월초 재고', s.open_stock_won], ['월말 재고', s.close_stock_won], ['재료비(재고 반영)', r.cost],
+      ['직원 월급', s.labor_won], ['4대보험', s.ins_won], ['월세·관리비', s.rent_won], ['전기·가스·수도', s.util_won],
+      ['포장재·소모품', s.waste_won], ['기타', s.etc_won], ['세금', s.tax_won], ['남은 돈', r.profit],
+    ];
+    for (const p of toPurchases(rows)) rowsOut.push([`매입: ${p.vendor}`, p.amount_won]);
+    const csv = '\uFEFF' + rowsOut.map(([k, v]) => `"${String(k).replace(/"/g, '""')}",${v}`).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a'); a.href = url; a.download = `settlement-${ym}.csv`; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
   const diff = prev ? r.profit - prev.profit : null;
 
   return (
     <>
-      <div className="hero"><span className="lbl">{monthOf(ym)}월 정산</span><h1>{monthOf(ym)}월에 얼마 남았는지<br />차례로 적어요</h1><p>모르는 칸은 비워도 돼요. 아는 것부터 넣으면 아래 결과가 바로 바뀌어요. 정산은 항상 지난달 기준이에요.</p></div>
+      <div className="hero"><span className="lbl">월 정산</span><h1>{monthOf(ym)}월에 얼마 남았는지<br />차례로 적어요</h1><p>모르는 칸은 비워도 돼요. 아는 것부터 넣으면 아래 결과가 바로 바뀌어요. 가장 최근 정산은 항상 지난달이에요.</p></div>
+      <div className="row sp monthnav">
+        <button className="btn line" aria-label="이전 달" disabled={ym <= shiftYm(maxYm, -23)} onClick={() => setYm(shiftYm(ym, -1))}>←</button>
+        <b>{ym.slice(0, 4)}년 {monthOf(ym)}월</b>
+        <button className="btn line" aria-label="다음 달" disabled={ym >= maxYm} onClick={() => setYm(shiftYm(ym, 1))}>→</button>
+      </div>
       <div className="card"><h3>1. 매출</h3>
         {field('hall', '홀·포장 매출')}{field('deliv', '배달 매출 (수수료 뺀 정산금)')}
         <div className="row">{field('receipts', '결제 건수', '건')}{field('days', '영업일', '일')}</div></div>
       <div className="card"><h3>2. 재료비</h3>
-        <div className="row sp"><span className="hint">거래처별 이번 달 매입액</span><button className="lnk" onClick={() => void importInvoices()}>거래명세서에서 가져오기</button></div>
+        <div className="row sp"><span className="hint">거래처별 매입액 (부가세 포함)</span><button className="lnk" onClick={() => void importInvoices()}>거래명세서에서 가져오기</button></div>
         {rows.map((p, i) => (
           <div className="row" key={i}>
             <div className="inp" style={{ flex: 1.3 }}><input aria-label="거래처" maxLength={60} placeholder="거래처" value={p.vendor} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, vendor: e.target.value } : x)))} /></div>
@@ -152,7 +190,7 @@ export default function MonthPage() {
         {field('close', '월말 재고 금액')}
         {field('theory', '이론 재료비 (선택)', '만원', '메뉴를 전부 레시피대로 만들었다면 들었을 재료값이에요. 넣으면 실제 재료비와 비교해 낭비·손실 비율을 보여줘요. 모르면 비워 두세요.')}</div>
       <div className="card"><h3>3. 그 밖의 비용</h3>
-        {field('labor', '직원 월급')}{field('ins', '4대보험')}{field('rent', '월세·관리비')}{field('util', '전기·가스·수도')}{field('waste', '포장재·소모품')}{field('etc', '기타')}{field('tax', '세금 (부가세 등)')}</div>
+        {field('labor', '직원 월급')}{field('ins', '4대보험')}{field('rent', '월세·관리비')}{field('util', '전기·가스·수도')}{field('waste', '포장재·소모품')}{field('etc', '기타')}{field('tax', '세금 (납부했거나 낼 부가세·소득세)', '만원', '거래명세서 합계에 이미 들어 있는 부가세는 재료비에 포함돼 있으니 여기엔 또 넣지 마세요.')}</div>
 
       <div className="card">
         <span className="lbl">{monthOf(ym)}월 남은 돈</span>
@@ -165,7 +203,9 @@ export default function MonthPage() {
         <div className="row sp"><span>하루 평균 매출</span><b className="num">{won(r.day)}원</b></div>
         <div className="row sp"><span>객단가</span><b className="num">{won(r.ticket)}원</b></div>
         {r.loss !== null && <div className="row sp"><span>재료 낭비·손실</span><b className="num">{pct(r.loss)}%</b></div>}
+        {missing.length > 0 && <p className="warnbox" role="status">아직 안 넣은 칸이 있어요: {missing.join(', ')}. 이 상태의 남은 돈은 실제보다 크게 보일 수 있어요.</p>}
         {tips.map((t) => <p key={t} className="hint">· {t}</p>)}
+        <button className="lnk" style={{ alignSelf: 'flex-start' }} onClick={downloadCsv}>정산표 내려받기 (엑셀용)</button>
       </div>
 
       <div className="card"><h3>마감 전 확인</h3>
@@ -174,6 +214,7 @@ export default function MonthPage() {
         ))}</div>
       {err && <p className="err" role="alert">{err}</p>}
       {msg && <p className="hint" role="status">{msg}</p>}
+      {dirty && !msg && <p className="hint" role="status">아직 저장하지 않았어요.</p>}
       <button className="btn" onClick={() => void save()} disabled={busy}>{busy ? '저장 중…' : '이 달 정산 저장'}</button>
     </>
   );

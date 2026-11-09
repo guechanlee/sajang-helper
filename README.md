@@ -33,6 +33,15 @@ npm run user:create -- 이메일 비밀번호                                  #
 ```
 이 계정도 일반 계정이라 자기 가게 데이터만 본다(관리자 권한 기능은 없다).
 
+## 백업·복원 (Docker)
+
+데이터는 `dbdata` 볼륨에 있어요. `docker compose down -v`를 하면 지워지니 주의하세요. 가끔 백업해 두세요.
+
+```
+docker compose exec db mysqldump -uroot -proot-local-only sajang > backup.sql
+docker compose exec -T db mysql -uroot -proot-local-only sajang < backup.sql   # 복원
+```
+
 ## 명령
 - `npm run dev` / `build` / `start`
 - `npm run typecheck`

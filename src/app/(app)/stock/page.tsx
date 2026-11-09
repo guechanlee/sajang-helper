@@ -73,7 +73,8 @@ export default function StockPage() {
           ))}</div>
       ))}
       <div className="card"><h3>발주서</h3><pre className="num" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: 0 }}>{text}</pre>
-        <button className="btn ghost" onClick={() => void copy()}>복사하기</button></div>
+        <button className="btn ghost" onClick={() => void copy()}>복사하기</button>
+        {text.startsWith('[') && <a className="btn line" href={`sms:?&body=${encodeURIComponent(text)}`}>문자로 보내기</a>}</div>
       <button className="btn line" onClick={() => void toMonth()}>이 금액을 {monthOf(ym)}월 정산의 월말 재고로 넣기</button>
       <div className="note">재고는 "포장" 단위예요. 재고 금액 = 포장 수 × 한 포장 가격이에요. 거래명세서를 저장하면 재고가 자동으로 늘어요.</div>
     </>
